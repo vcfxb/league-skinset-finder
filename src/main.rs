@@ -13,22 +13,74 @@ const OFFICIAL_SETS_TABLE: &'static str = include_str!("../assets/official-sets-
 /// Select which table to use. 
 const USE_TABLE: &'static str = WIKI_SETS_TABLE;
 
-/// List of champions maddie plays.
-const MADDIE_CHAMPS: &'static [&'static str] = &[
-    "Caitlyn",
-    "Jinx",
-    "Ashe",
-    "Jhin"
-];
+/// Player struct used to check for champ overlaps. 
+struct Player {
+    name: &'static str,
+    champs: &'static [&'static str],
+}
 
-/// List of champions that toni plays.
-const TONI_CHAMPS: &'static [&'static str] = &[
-    "Vel'Koz",
-    "Evelynn",
-    "Cho'Gath",
-    "Briar",
-    "Samira"
-];
+const MADDIE: Player = Player {
+    name: "Maddie",
+    champs: &[
+        "Caitlyn",
+        "Jinx",
+        "Ashe",
+        "Jhin"
+    ]
+};
+
+const TONI: Player = Player {
+    name: "Toni",
+    champs: &[
+        "Vel'Koz",
+        "Evelynn",
+        "Cho'Gath",
+        "Briar",
+        "Samira",
+        "Morgana",
+        "Kog'Maw",
+    ]
+};
+
+const VENUS: Player = Player {
+    name: "Venus",
+    champs: &[
+        "Mordekaiser",
+        "Blitzcrank",
+        "Caitlyn",
+        "Lux",
+        "Pantheon",
+        "Illaoi"
+    ],
+};
+
+const PLAYERS: &'static [Player] = &[MADDIE, TONI, VENUS];
+
+/// Make an iterator over all combinations of champions.
+fn all_champ_combinations(players: &[Player]) -> Vec<Vec<&'static str>> {
+    match players.len() {
+        0 => Vec::new(),
+        1 => players[0].champs.iter().map(|champ| vec![*champ]).collect(),
+        _ => {
+            // Get a list of all champ combinataions not including the first player. 
+            let others = all_champ_combinations(&players[1..]);
+            // Make a list to copy resuls into. 
+            let mut result = Vec::new();
+
+            for champ in players[0].champs {
+                for champ_combo in others.iter() {
+                    if !champ_combo.contains(champ) {
+                        let mut new_combo = champ_combo.clone();
+                        new_combo.insert(0, *champ);
+                        result.push(new_combo);
+                    }
+                }
+            }
+
+            result
+        }
+    }
+}
 
 fn main() -> anyhow::Result<()> {
     // Create maps to do bi-directional lookup of skins for champs. 
@@ -104,23 +156,29 @@ fn main() -> anyhow::Result<()> {
         }   
     }
 
+    // Make an iterator over every possible combination of champions
+    
     // Find intersections
-    for maddie in MADDIE_CHAMPS {
-        // Get the skins for this champ.
-        let maddie_skins = &skin_sets_by_champ[*maddie];
+    for champ_combo in all_champ_combinations(PLAYERS) {
+        let mut skinset = skin_sets_by_champ[champ_combo[0]].clone();
+        
+        for champ in &champ_combo[1..] {
+            skinset = skinset
+                .intersection(&skin_sets_by_champ[*champ])
+                .cloned()
+                .collect();
+        }
 
-        for toni in TONI_CHAMPS {
-            // Get skin sets for this champ.
-            let toni_skins = &skin_sets_by_champ[*toni];
+        if !skinset.is_empty() {
+            // Match the champ to the player and print. 
+            let prefix = champ_combo
+                .iter()
+                .zip(PLAYERS)
+                .map(|(champ, player)| format!("{} plays {}", player.name, *champ))
+                .collect::<Vec<_>>()
+                .join(", ");
 
-            // Get a list of overlapping skins.
-            let intersection = maddie_skins
-                .intersection(toni_skins)
-                .collect::<Vec<&String>>();
-
-            if !intersection.is_empty() {
-                println!("Maddie plays {maddie}, Toni plays {toni}, overlapping skinsets: {intersection:?}");
-            }
+            println!("{prefix} -- overlapping skinsets: {skinset:?}");
         }
     }
 
