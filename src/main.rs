@@ -1,6 +1,6 @@
 
 use std::collections::{HashMap, HashSet};
-use scraper::{Html, Selector, ElementRef};
+use scraper::{Html, Selector};
 
 /// Include the wiki sets table from https://leagueoflegends.fandom.com/wiki/Champion_skin/Skin_themes.
 #[allow(unused)]
@@ -91,16 +91,7 @@ fn main() -> anyhow::Result<()> {
     let mut champs_by_skinset: HashMap<String, HashSet<String>> = HashMap::new();
 
     // Parse the fragment we're useing.
-    let document = Html::parse_fragment(USE_TABLE);
-
-    // Parse a selector that will find us the main table. 
-    let table_selector: Selector = Selector::parse("table.wikitable").expect("table selector good");
-
-    // Get the table element
-    let table: ElementRef = document
-        .select(&table_selector)
-        .next()
-        .expect("finds wikitable");
+    let fragment = Html::parse_fragment(USE_TABLE);
 
     // Make a selector to get rows out of the table. 
     let rows_selector: Selector = Selector::parse("tr").expect("rows selcector good");
@@ -112,7 +103,7 @@ fn main() -> anyhow::Result<()> {
     let set_name_selector: Selector = Selector::parse("th:last-of-type").expect("set name selector good");
 
     // Iterate over all the rows of the table.
-    for row_ref in table.select(&rows_selector).skip(1) { // skip(1) to remove the header row
+    for row_ref in fragment.select(&rows_selector).skip(1) { // skip(1) to remove the header row
         // Get the set name. 
         let set_name: String = row_ref
             .select(&set_name_selector)
