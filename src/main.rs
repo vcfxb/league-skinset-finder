@@ -24,8 +24,6 @@ const MADDIE: Player = Player {
     champs: &[
         "Caitlyn",
         "Jinx",
-        "Ashe",
-        "Jhin"
     ]
 };
 
@@ -36,7 +34,6 @@ const TONI: Player = Player {
         "Evelynn",
         "Cho'Gath",
         "Briar",
-        "Samira",
         "Morgana",
         "Kog'Maw",
     ]
@@ -47,12 +44,18 @@ const VENUS: Player = Player {
     champs: &[
         "Mordekaiser",
         "Blitzcrank",
-        "Caitlyn",
         "Lux",
         "Pantheon",
         "Illaoi"
     ],
 };
+
+const SKINSET_BLACKLIST: &'static [&'static str] = &[
+    // Blacklisted for being aesthetically incoherent
+    "Legacy", 
+    // Blacklisted for being ugly. 
+    "Battlecast"
+];
 
 const PLAYERS: &'static [Player] = &[MADDIE, TONI, VENUS];
 
@@ -119,7 +122,7 @@ fn main() -> anyhow::Result<()> {
             .collect::<String>();
 
         // Legacy is a pseudo-set for old skins.
-        if set_name == "Legacy" { continue; }
+        if SKINSET_BLACKLIST.contains(&set_name.as_str()) { continue; }
 
         // Get an iterator over all the champ names in this set.
         let champs_iter = row_ref
