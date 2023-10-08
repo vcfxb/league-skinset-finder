@@ -1,7 +1,9 @@
 
-use std::collections::{HashMap, HashSet};
-use scraper::{Html, Selector};
+use std::collections::HashSet;
 use skinsets::Skinsets;
+use comfy_table::modifiers::UTF8_ROUND_CORNERS;
+use comfy_table::presets::UTF8_FULL;
+use comfy_table::Table;
 
 mod lanes;
 mod skinsets;
@@ -17,8 +19,8 @@ const MADDIE: Player = Player {
     champs: &[
         "Caitlyn",
         "Jinx",
-        "Ashe",
-        "Jhin"
+        // "Ashe",
+        // "Jhin"
     ]
 };
 
@@ -119,24 +121,34 @@ fn all_champ_combinations(players: &[Player]) -> Vec<Vec<&'static str>> {
 fn main() -> anyhow::Result<()> {
     // Make a new map to keep track of skinsets. 
     let skinset_map: Skinsets = Skinsets::new();
-    
+    // Make a table for printing things to the terminal.
+    let mut table: Table = Table::new();
+    // Add nice character styling to the table.
+    table.load_preset(UTF8_FULL).apply_modifier(UTF8_ROUND_CORNERS);
+    // Set the table header -- list of player names and skinset column.
+    table.set_header(PLAYERS.iter().map(|p| p.name).chain(std::iter::once("Skinsets")));
+
     // Iterate over every possible combination of champs for the given players.
     for champ_combo in all_champ_combinations(PLAYERS) {
         // Get the set of overlapping skinsets for the champions.
         let overlapping_skinsets: HashSet<String> = skinset_map.get_overlapping_skinsets(&champ_combo);
 
+        // If there are overlapping skins, add a row to the table.
         if !overlapping_skinsets.is_empty() {
-            // Match the champ to the player and print. 
-            let prefix = champ_combo
+            // Collect all the skinsets into a string we can print.
+            let last_col = overlapping_skinsets
                 .iter()
-                .zip(PLAYERS)
-                .map(|(champ, player)| format!("{} plays {}", player.name, *champ))
+                .map(|skinset| format!("`{skinset}`"))
                 .collect::<Vec<_>>()
-                .join(", ");
+                .join(",");
 
-            println!("{prefix} -- overlapping skinsets: {overlapping_skinsets:?}");
+            // Add a row to the table.
+            table.add_row(champ_combo.iter().chain(std::iter::once(&last_col.as_str())));
         }
     }
 
+    // Print the table.
+    println!("{table}");
+    // Exit status OK. 
     Ok(())
 }
