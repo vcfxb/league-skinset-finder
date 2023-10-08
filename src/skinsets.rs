@@ -4,6 +4,8 @@ use std::collections::{HashMap, HashSet};
 
 use scraper::{Html, Selector};
 
+use crate::lanes::Lane;
+
 /// Include the wiki sets table from https://leagueoflegends.fandom.com/wiki/Champion_skin/Skin_themes.
 #[allow(unused)]
 const WIKI_SETS_TABLE: &'static str = include_str!("../assets/wiki-sets-table.html");
@@ -24,9 +26,8 @@ impl Skinsets {
     pub fn new() -> Self {
         // Parse the fragment we're useing.
         let fragment = Html::parse_fragment(USE_TABLE);
-
         // Make a selector to get rows out of the table. 
-        let rows_selector: Selector = Selector::parse("tr").expect("rows selcector good");
+        let rows_selector: Selector = Selector::parse("tr").expect("rows selector good");
         // Make a selector to find champs from a row element. 
         let champs_selector: Selector = Selector::parse("li > span").expect("champ selector good");
         // Make a selector to find the set name from a row ref. 
@@ -80,12 +81,12 @@ impl Skinsets {
     }
 
     /// Get the set of skinsets shared by all champs in a list. Note that the set may be empty.  
-    pub fn get_overlapping_skinsets(&self, champ_list: &[&str]) -> HashSet<String> {
+    pub fn get_overlapping_skinsets(&self, champ_list: &[(&str, Lane)]) -> HashSet<String> {
         // Start with all the skins the first champ can use.
-        let mut intersection = self.champ_to_skinset_map[champ_list[0]].clone();
+        let mut intersection = self.champ_to_skinset_map[champ_list[0].0].clone();
 
         // For each of the remaining champs, reduce the intersection to overlapping skinsets.
-        for champ in champ_list.iter().skip(1) {
+        for (champ, _) in champ_list.iter().skip(1) {
             // Get a reference to this champ's skinsets.
             let champ_skinsets = &self.champ_to_skinset_map[*champ];
             // Clone and collect all the skinset names into the new intersection set. 
