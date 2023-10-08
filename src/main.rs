@@ -35,6 +35,7 @@ const TONI: Player = Player {
         "Cho'Gath",
         "Briar",
         "Morgana",
+        "Kindred"
     ]
 };
 
