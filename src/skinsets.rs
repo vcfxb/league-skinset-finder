@@ -1,10 +1,16 @@
 //! Champ Skinset table calculations. 
 
 use std::collections::{HashMap, HashSet};
-
 use scraper::{Html, Selector};
-
 use crate::lanes::Lane;
+
+/// Skinsets we're not playing for various reasons. 
+const SKINSET_BLACKLIST: &'static [&'static str] = &[
+    // Blacklisted for being aesthetically incoherent
+    "Legacy", 
+    // Blacklisted for being ugly. 
+    "Battlecast"
+];
 
 /// Include the wiki sets table from https://leagueoflegends.fandom.com/wiki/Champion_skin/Skin_themes.
 #[allow(unused)]
@@ -17,6 +23,8 @@ const OFFICIAL_SETS_TABLE: &'static str = include_str!("../assets/official-sets-
 /// Select which table to use. 
 const USE_TABLE: &'static str = WIKI_SETS_TABLE;
 
+/// Map from champ name to set of skinset names available. 
+#[derive(Debug)]
 pub struct Skinsets {
     champ_to_skinset_map: HashMap<String, HashSet<String>>
 }
@@ -48,7 +56,7 @@ impl Skinsets {
                 .collect::<String>();
 
             // Skip any blacklisted skins.
-            if crate::SKINSET_BLACKLIST.contains(&set_name.as_str()) { continue; }
+            if SKINSET_BLACKLIST.contains(&set_name.as_str()) { continue; }
 
             // Get an iterator over all the champ names in this set.
             let champs_iter = row_ref

@@ -1,103 +1,29 @@
 
 use std::collections::HashSet;
+use std::time::Instant;
+use lazy_static::lazy_static;
 use lanes::Lane;
+use players::Player;
 use skinsets::Skinsets;
 use comfy_table::modifiers::UTF8_ROUND_CORNERS;
 use comfy_table::presets::UTF8_FULL;
 use comfy_table::Table;
+use lanes::LanesMap;
 
-use crate::lanes::LanesMap;
+use crate::players::PLAYERS;
 
 mod lanes;
 mod skinsets;
+mod players;
 
-/// Player struct used to check for champ overlaps. 
-struct Player {
-    name: &'static str,
-    champs: &'static [&'static str],
+lazy_static! {
+    static ref GLOBAL_SKINSETS_MAP: Skinsets = Skinsets::new();
+    static ref GLOBAL_LANES_MAP: LanesMap = LanesMap::new();
 }
 
-const MADDIE: Player = Player {
-    name: "Maddie",
-    champs: &[
-        "Caitlyn",
-        "Jinx",
-        "Ashe",
-        "Jhin"
-    ]
-};
-
-const TONI: Player = Player {
-    name: "Toni",
-    champs: &[
-        "Vel'Koz",
-        "Evelynn",
-        "Cho'Gath",
-        "Briar",
-        "Morgana",
-        "Kindred"
-    ]
-};
-
-const VENUS: Player = Player {
-    name: "Venus",
-    champs: &[
-        "Mordekaiser",
-        "Blitzcrank",
-        "Lux",
-        "Pantheon",
-        "Illaoi"
-    ],
-};
-
-const EMMA: Player = Player {
-    name: "Emma",
-    champs: &[
-        "Diana",
-        "Pyke",
-        "Akali",
-        "Fizz",
-        "Ahri",
-        "Jinx",
-        "Kalista",
-        "LeBlanc",
-        "Lux",
-        "Gwen",
-        "Ezreal",
-        "Soraka",
-        "Renata Glasc",
-        "Yuumi",
-        "Seraphine",
-        "Kindred",
-        "Irelia",
-        "Azir",
-        "Kai'Sa",
-        "Karma",
-        "Kennen",
-        "Mordekaiser",
-        "Nami",
-        "Quinn",
-        "Senna",
-        "Sivir",
-        "Shyvana",
-        "Taliyah",
-        "Varus",
-        "Viego",
-        "Xayah"
-    ],
-};
-
-const SKINSET_BLACKLIST: &'static [&'static str] = &[
-    // Blacklisted for being aesthetically incoherent
-    "Legacy", 
-    // Blacklisted for being ugly. 
-    "Battlecast"
-];
-
-const PLAYERS: &'static [Player] = &[MADDIE, TONI, VENUS, EMMA];
 
 /// Make an iterator over all combinations of champions.
-fn all_champ_combinations(players: &[Player], lanes_map: &LanesMap) -> Vec<Vec<(&'static str, Lane)>> {
+fn all_champ_combinations(players: &[Player]) -> Vec<Vec<(&'static str, Lane)>> {
     match players.len() {
         // No players - no combos.
         0 => Vec::new(),
@@ -110,7 +36,7 @@ fn all_champ_combinations(players: &[Player], lanes_map: &LanesMap) -> Vec<Vec<(
             // Iterate over all the champs for the one player.
             for champ in players[0].champs {
                 // Iterate over the lanes for a champ
-                for lane in lanes_map.lanes_for_champ(*champ) {
+                for lane in GLOBAL_LANES_MAP.lanes_for_champ(*champ) {
                     result.push(vec![(*champ, lane)]);
                 }
             }
@@ -120,14 +46,14 @@ fn all_champ_combinations(players: &[Player], lanes_map: &LanesMap) -> Vec<Vec<(
 
         _ => {
             // Get a list of all champ combinataions not including the first player. 
-            let others: Vec<Vec<(&'static str, Lane)>> = all_champ_combinations(&players[1..], lanes_map);
+            let others: Vec<Vec<(&'static str, Lane)>> = all_champ_combinations(&players[1..]);
             // Make a list to copy resuls into. 
             let mut result = Vec::new();
 
             // Iterate over all the champs a player could play.
             for champ in players[0].champs {
                 // Iterate over all the lanes the champ could play. 
-                for lane in lanes_map.lanes_for_champ(*champ) {
+                for lane in GLOBAL_LANES_MAP.lanes_for_champ(*champ) {
                     // Iterate over all the other champ combos for the rest of the team. 
                     for champ_combo in others.iter() {
                         // Check if this champ is already in the combo
@@ -152,33 +78,31 @@ fn all_champ_combinations(players: &[Player], lanes_map: &LanesMap) -> Vec<Vec<(
 }
 
 fn main() -> anyhow::Result<()> {
-    // Make a new map to keep track of skinsets. 
-    let skinset_map: Skinsets = Skinsets::new();
-    // Make a new map to keep track of lanes available to champs.
-    let lanes_map: LanesMap = LanesMap::new();
+    // Track the starting instant for performance reasons. 
+    let start = Instant::now();
     // Make a table for printing things to the terminal.
     let mut table: Table = Table::new();
     // Add nice character styling to the table.
     table.load_preset(UTF8_FULL).apply_modifier(UTF8_ROUND_CORNERS);
     // Set the table header -- list of player names and skinset column.
-    table.set_header(PLAYERS.iter().map(|p| p.name).chain(std::iter::once("Skinsets")));
+    table.set_header(PLAYERS.iter().map(|p| p.name).chain(std::iter::once("Overlapping Skinsets")));
 
     // Iterate over every possible combination of champs for the given players.
-    for champ_combo in all_champ_combinations(PLAYERS, &lanes_map) {
+    for champ_combo in all_champ_combinations(PLAYERS) {
         // Get the set of overlapping skinsets for the champions.
-        let overlapping_skinsets: HashSet<String> = skinset_map.get_overlapping_skinsets(&champ_combo);
+        let overlapping_skinsets: HashSet<String> = GLOBAL_SKINSETS_MAP.get_overlapping_skinsets(&champ_combo);
 
         // If there are overlapping skins, add a row to the table.
         if !overlapping_skinsets.is_empty() {
             // Transform the champ combo into an iterator over printable strings.
             let main_cols = champ_combo
                 .into_iter()
-                .map(|(champ, lane)| format!("{champ} in {lane}"));
+                .map(|(champ, lane)| format!("{champ} {lane}"));
             
             // Collect all the skinsets into a string we can print.
             let last_col = overlapping_skinsets
                 .iter()
-                .map(|skinset| format!("`{skinset}`"))
+                .map(|skinset| format!("{skinset}"))
                 .collect::<Vec<_>>()
                 .join(",");
 
@@ -189,6 +113,7 @@ fn main() -> anyhow::Result<()> {
 
     // Print the table.
     println!("{table}");
+    println!("Resolved in {:?}", Instant::now() - start);
     // Exit status OK. 
     Ok(())
 }

@@ -22,7 +22,7 @@ pub enum Lane {
     Top,
     Jungle,
     Mid,
-    Bottom,
+    Bot,
     Support
 }
 
@@ -73,7 +73,7 @@ impl LanesMap {
                         0 => lanes |= Lane::Top,
                         1 => lanes |= Lane::Jungle,
                         2 => lanes |= Lane::Mid,
-                        3 => lanes |= Lane::Bottom,
+                        3 => lanes |= Lane::Bot,
                         4 => lanes |= Lane::Support,
                         // Unreachable because we limit the number of <td> tags in the iterator using take()
                         _ => unreachable!()
