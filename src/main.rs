@@ -24,6 +24,7 @@ const MADDIE: Player = Player {
     champs: &[
         "Caitlyn",
         "Jinx",
+        "Ashe"
     ]
 };
 
@@ -35,7 +36,6 @@ const TONI: Player = Player {
         "Cho'Gath",
         "Briar",
         "Morgana",
-        "Kog'Maw",
     ]
 };
 
@@ -50,6 +50,17 @@ const VENUS: Player = Player {
     ],
 };
 
+const EMMA: Player = Player {
+    name: "Emma",
+    champs: &[
+        "Diana",
+        "Pyke",
+        "Akali",
+        "Fizz",
+        "Ahri",
+    ],
+};
+
 const SKINSET_BLACKLIST: &'static [&'static str] = &[
     // Blacklisted for being aesthetically incoherent
     "Legacy", 
@@ -57,7 +68,7 @@ const SKINSET_BLACKLIST: &'static [&'static str] = &[
     "Battlecast"
 ];
 
-const PLAYERS: &'static [Player] = &[MADDIE, TONI, VENUS];
+const PLAYERS: &'static [Player] = &[MADDIE, TONI, VENUS, EMMA];
 
 /// Make an iterator over all combinations of champions.
 fn all_champ_combinations(players: &[Player]) -> Vec<Vec<&'static str>> {
