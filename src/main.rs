@@ -80,6 +80,11 @@ fn all_champ_combinations(players: &[Player]) -> Vec<Vec<(&'static str, Lane)>> 
 fn main() -> anyhow::Result<()> {
     // Track the starting instant for performance reasons. 
     let start = Instant::now();
+    // Force init of lazy statics
+    lazy_static::initialize(&GLOBAL_LANES_MAP);
+    lazy_static::initialize(&GLOBAL_SKINSETS_MAP);
+    // Log how much time it took to scrape/initialize these globals.
+    println!("Globals initialized in {:?}", Instant::now() - start);
     // Make a table for printing things to the terminal.
     let mut table: Table = Table::new();
     // Add nice character styling to the table.

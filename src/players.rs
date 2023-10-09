@@ -41,7 +41,8 @@ const VENUS: Player = Player {
         "Blitzcrank",
         "Lux",
         "Pantheon",
-        "Illaoi"
+        "Illaoi",
+        "Gangplank"
     ],
 };
 
