@@ -1,16 +1,21 @@
 //! Champ Skinset table calculations. 
 
-use std::collections::{HashMap, HashSet};
+use std::{collections::{HashMap, HashSet}, cell::RefCell};
 use scraper::{Html, Selector};
 use crate::lanes::Lane;
 
-/// Skinsets we're not playing for various reasons. 
-const SKINSET_BLACKLIST: &'static [&'static str] = &[
-    // Blacklisted for being aesthetically incoherent
-    "Legacy", 
-    // Blacklisted for being ugly. 
-    "Battlecast"
-];
+thread_local! {
+    /// Global static skinsets map. 
+    pub static GLOBAL_SKINSETS_MAP: Skinsets = Skinsets::new();
+}
+
+// /// Skinsets we're not playing for various reasons. 
+// const SKINSET_BLACKLIST: &'static [&'static str] = &[
+//     // Blacklisted for being aesthetically incoherent
+//     "Legacy", 
+//     // Blacklisted for being ugly. 
+//     "Battlecast"
+// ];
 
 /// Include the wiki sets table from https://leagueoflegends.fandom.com/wiki/Champion_skin/Skin_themes.
 #[allow(unused)]
@@ -26,12 +31,15 @@ const USE_TABLE: &'static str = WIKI_SETS_TABLE;
 /// Map from champ name to set of skinset names available. 
 #[derive(Debug)]
 pub struct Skinsets {
-    champ_to_skinset_map: HashMap<String, HashSet<String>>
+    /// Map from champ name to the hash set of skinset names they can use.
+    champ_to_skinset_map: HashMap<String, HashSet<String>>,
+    /// The set of skinsets the user does not want to use/play. 
+    skinset_blacklist: RefCell<HashSet<String>>
 }
 
 impl Skinsets {
     /// Populate a new skinset map by scraping the downloaded HTML fragments. 
-    pub fn new() -> Self {
+    fn new() -> Self {
         // Parse the fragment we're useing.
         let fragment = Html::parse_fragment(USE_TABLE);
         // Make a selector to get rows out of the table. 
@@ -55,8 +63,8 @@ impl Skinsets {
                 .text()
                 .collect::<String>();
 
-            // Skip any blacklisted skins.
-            if SKINSET_BLACKLIST.contains(&set_name.as_str()) { continue; }
+            // // Skip any blacklisted skins.
+            // if SKINSET_BLACKLIST.contains(&set_name.as_str()) { continue; }
 
             // Get an iterator over all the champ names in this set.
             let champs_iter = row_ref
@@ -85,7 +93,7 @@ impl Skinsets {
             }   
         }
 
-        Self { champ_to_skinset_map }
+        Self { champ_to_skinset_map, skinset_blacklist: RefCell::new(HashSet::new()) }
     }
 
     /// Get the set of skinsets shared by all champs in a list. Note that the set may be empty.  

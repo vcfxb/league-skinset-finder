@@ -6,10 +6,34 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.75"
-comfy-table = "7.0.1"
+# Lets us derive things like Display
 derive_more = "0.99.17"
+
+# Used to turn the Lane enum into bitflags
 enumflags2 = { version = "0.7.8", features = ["std"] }
-lazy_static = "1.4.0"
-scraper = "0.17.1"
+
+# Might use to validate form fields.
+# validator = { version = "0.16.1", features = ["derive"] }
+
+# Web frontend framework
 yew = { version = "0.21.0", features = ["csr"] }
+
+# Icon pack to use with Yew -- Icons have to be included by feature name. 
+yew_icons = { version = "0.8.0", features = ["LucideExternalLink"] }
+
+# Use over std::time::Instant due to compatability issues with wasm
+instant = { version = "0.1.12", features = ["wasm-bindgen"] }
+
+# Logging to the web console. 
+log = "0.4.20"
+console_log = { version = "1.0.0", features = ["color"] }
+
+# Scraper to extract tables from our source data. 
+# Specify the `js` feature for getrandom to make sure that scraper compiles for wasm
+scraper = "0.17.1"
+getrandom = { version = "0.2", features = ["js"] }
+
+# For build script to timestamp every build. 
+[build-dependencies]
+anyhow = "1.0"
+chrono = "0.4.31"

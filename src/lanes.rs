@@ -1,18 +1,24 @@
 //! Champ lane table calculations.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, cell::RefCell, thread::LocalKey};
 use derive_more::Display;
 use enumflags2::{BitFlags, bitflags};
 use scraper::{Html, Selector};
 
+thread_local! {
+    /// Global map relating champions to their playable lanes. 
+    pub static GLOBAL_LANES_MAP: LanesMap = LanesMap::new();
+}
+
+
 /// Lane table from https://leagueoflegends.fandom.com/wiki/List_of_champions_by_draft_position. 
 const LANES_HTML: &'static str = include_str!("../assets/champ-lanes-table.html");
 
-/// Used to manually add lanes to champions that are not otherwise considered kosher. 
-const MANUAL_LANE_OVERRIDES: &'static [(&'static str, Lane)] = &[
-    ("Caitlyn", Lane::Top),
-    ("Cho'Gath", Lane::Support),
-];
+// /// Used to manually add lanes to champions that are not otherwise considered kosher. 
+// const MANUAL_LANE_OVERRIDES: &'static [(&'static str, Lane)] = &[
+//     ("Caitlyn", Lane::Top),
+//     ("Cho'Gath", Lane::Support),
+// ];
 
 /// Bitflaggable Lane enumeration for the available lanes in league. 
 #[bitflags]
@@ -30,11 +36,13 @@ pub enum Lane {
 #[derive(Debug)]
 pub struct LanesMap {
     /// Map from champion to bitflags of playable lanes. 
-    champ_to_lanes_map: HashMap<String, BitFlags<Lane>>
+    champ_to_lanes_map: HashMap<String, BitFlags<Lane>>,
+    /// Any additional champ -> lane overrides. If a champ is present here, ignore its entry in the other field. 
+    lane_overrides: RefCell<HashMap<String, BitFlags<Lane>>>
 }
 impl LanesMap {
     /// Construct a new [`LanesMap`] by scraping the downloaded HTML fragment and adding overrides. 
-    pub fn new() -> Self {
+    fn new() -> Self {
         // Make map to populate.
         let mut champ_to_lanes_map = HashMap::new();
         // Load the table fragment into a scrapable document.
@@ -81,23 +89,28 @@ impl LanesMap {
                 }
             }
 
-            // Check if there are any lane overrides.
-            for (champ, lane) in MANUAL_LANE_OVERRIDES {
-                if *champ == champ_name {
-                    lanes |= *lane;
-                }
-            }
+            // // Check if there are any lane overrides.
+            // for (champ, lane) in MANUAL_LANE_OVERRIDES {
+            //     if *champ == champ_name {
+            //         lanes |= *lane;
+            //     }
+            // }
 
             // Add the champ and their lanes to the map. We use insert rather than upsert here because we assume there
             // are no duplicates in the table. 
             champ_to_lanes_map.insert(champ_name, lanes);
         }
 
-        Self { champ_to_lanes_map }
+        Self { champ_to_lanes_map, lane_overrides: RefCell::new(HashMap::new()) }
     }
 
-    /// Get an iterator over all the lanes available for a given champion. 
-    pub fn lanes_for_champ(&self, champ_name: &str) -> impl Iterator<Item = Lane> {
-        self.champ_to_lanes_map[champ_name].iter()
+    /// Get the lanes a champ is playable in. 
+    pub fn lanes_for_champ(&self, champ_name: &str) -> BitFlags<Lane> {
+        self.champ_to_lanes_map[champ_name]
+    }
+
+    /// Get a list of the name of every champ in the game. 
+    pub fn all_champs(&self) -> Vec<&String> {
+        self.champ_to_lanes_map.keys().collect()
     }
 }

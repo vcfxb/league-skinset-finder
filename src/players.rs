@@ -10,7 +10,7 @@ pub struct Player {
 }
 
 /// List of people playing
-pub const PLAYERS: &'static [Player] = &[MADDIE, TONI, VENUS, EMMA];
+pub const PLAYERS: &'static [Player] = &[VENUS, EMMA];
 
 const MADDIE: Player = Player {
     name: "Maddie",
