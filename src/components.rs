@@ -1,7 +1,6 @@
 //! Yew components to build out the League Skinset Finder frontend. 
 
 use yew::prelude::*;
-use crate::BUILT_AT;
 
 use yew_icons::{Icon, IconId};
 
@@ -52,7 +51,7 @@ pub fn app() -> Html {
                     <Link href="https://leagueoflegends.fandom.com/wiki/List_of_champions_by_draft_position" open_in_new_tab={true} />
                     {"."}
                 </p>
-                <p> {"Data was last updated from these sources on "} {BUILT_AT} {"."} </p>
+                <p> {"Data was last updated from these sources on October 11th, 2023."} </p>
                 <p>
                     {"
                     I will try to keep this generally up to date with league skins and champions, but may not always
