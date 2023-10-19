@@ -871,6 +871,7 @@ dependencies = [
  "instant",
  "log",
  "scraper",
+ "web-sys",
  "yew",
  "yew_icons",
 ]

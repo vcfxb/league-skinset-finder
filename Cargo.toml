@@ -12,11 +12,9 @@ derive_more = "0.99.17"
 # Used to turn the Lane enum into bitflags
 enumflags2 = { version = "0.7.8", features = ["std"] }
 
-# Might use to validate form fields.
-# validator = { version = "0.16.1", features = ["derive"] }
-
 # Web frontend framework
 yew = { version = "0.21.0", features = ["csr"] }
+web-sys = { version = "0.3.64" }
 
 # Icon pack to use with Yew -- Icons have to be included by feature name. 
 yew_icons = { version = "0.8.0", features = ["LucideExternalLink"] }

@@ -1,5 +1,4 @@
 
-
 /// Const-definable player struct used to define the list of champs someone is willing to play. 
 #[derive(Copy, Clone, Debug)]
 pub struct Player {
