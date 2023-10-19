@@ -90,7 +90,7 @@ impl Component for App {
                         <p class="h1"> {"League of Legends skinset finder"} </p>
                         <p> {"This tool is used to find League of Legend team comps that share skins from the same skinset."} </p>
                         <p> 
-                            {"I currently source my skin data from"} 
+                            {"I currently source my skin data from "} 
                             <Link href="https://leagueoflegends.fandom.com/wiki/Champion_skin/Skin_themes" open_in_new_tab={true} />
                             {", and my lane data from "}
                             <Link href="https://leagueoflegends.fandom.com/wiki/List_of_champions_by_draft_position" open_in_new_tab={true} />
