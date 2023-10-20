@@ -2,7 +2,7 @@
 
 
 
-use std::{rc::Rc, collections::HashMap};
+use std::{rc::Rc, collections::HashMap, cell::RefCell};
 use yew::prelude::*;
 use enumflags2::BitFlags;
 use crate::lanes::Lane;
@@ -11,6 +11,7 @@ use remove_player::RemoveButton;
 
 mod name_field;
 mod remove_player;
+mod champ;
 
 #[derive(Properties, PartialEq, Debug)]
 pub struct PlayerProps {
@@ -19,7 +20,7 @@ pub struct PlayerProps {
     /// The default name of this player. 
     pub name: Option<AttrValue>,
     /// Map of champs this player plays. 
-    pub champs: Rc<HashMap<AttrValue, BitFlags<Lane>>>,
+    pub champs: Rc<RefCell<HashMap<AttrValue, BitFlags<Lane>>>>,
     /// Callback to handle player name chane. 
     pub on_name_change: Callback<String>,
     /// Whether the remove player button is enabled (there need to be more than 6 champs).
@@ -45,6 +46,9 @@ pub fn player(props: &PlayerProps) -> Html {
                     // Remove player button.
                     <RemoveButton enable={props.enable_remove} on_click={props.on_remove.clone()} />
                 </div> 
+            </div>
+            // Champ selectors.
+            <div>
             </div>
         </div>
     }

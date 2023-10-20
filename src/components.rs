@@ -1,32 +1,35 @@
 //! Yew components to build out the League Skinset Finder frontend. 
 
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, rc::Rc, cell::RefCell};
 
 use enumflags2::BitFlags;
+use implicit_clone::unsync::IString;
 use yew::prelude::*;
 use link::Link;
 use crate::lanes::Lane;
 use player::Player;
 use yew_icons::{Icon, IconId};
+use serde::{Serialize, Deserialize};
 
 pub mod player;
 pub mod link;
 
 /// State persisted for each player in the frontend. 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerRecord {
     /// Hide/exclude this player from view and calculation. 
     pub exclude: bool,
     /// Player name (optional -- resolve with player number otherwise).
-    pub name: Option<Rc<str>>,
-    /// List of champs and what lanes for them. 
-    pub champs: Rc<HashMap<AttrValue, BitFlags<Lane>>>
+    pub name: Option<AttrValue>,
+    /// List of champs and what lanes for them. This is stored in an [`Rc`]'d [`RefCell`] for easy cloning/sharing
+    /// with interior mutability. 
+    pub champs: Rc<RefCell<HashMap<AttrValue, BitFlags<Lane>>>>
 }
 
 impl PlayerRecord {
     /// Create a new player with a given number and otherwise empty fields. 
     pub fn new(exclude: bool) -> Self {
-        Self { exclude, name: None, champs: Rc::new(HashMap::new()) }
+        Self { exclude, name: None, champs: Rc::new(RefCell::new(HashMap::new())) }
     }
 }
 
@@ -52,6 +55,26 @@ pub enum Msg {
         /// The index of the player to remove. 
         player_index: usize,
     },
+
+    /// Add a champion to a player's list of playable champions.
+    /// This message gets re-sent when a player changes the lanes for a champ too, 
+    /// so be ready to handle that. 
+    AddChampToPlayer {
+        /// The index of the player in the players list.
+        player_index: usize,
+        /// The name of the champion being added to this player. 
+        champ_name: String,
+        /// The lanes that the player is willing to play this champion.
+        lanes: BitFlags<Lane>
+    },
+
+    /// Removes a champ from a player's list of playable champions.
+    RemoveChampFromPlayer {
+        /// The index of the player to remove the champ from.
+        player_index: usize,
+        /// The name of the champ to remove. 
+        champ_name: String,
+    }
 }
 
 /// The main component that the frontend is rendered as. 
@@ -90,6 +113,17 @@ impl Component for App {
             Msg::AddPlayer => if self.players.len() <= 5 { self.players.push(PlayerRecord::new(false)) }
 
             Msg::RemovePlayer { player_index } => if self.players.len() >= 1 { self.players.remove(player_index); }
+
+            Msg::AddChampToPlayer { player_index, champ_name, lanes } => {
+                // Mutably borrow the player's champs table. 
+                let mut champs_borrow = self.players[player_index].champs.borrow_mut();
+                // Set the champ's entry's lanes (upsert). 
+                *champs_borrow.entry(champ_name.into()).or_default() = lanes;
+            }
+
+            Msg::RemoveChampFromPlayer { player_index, champ_name } => {
+                self.players[player_index].champs.borrow_mut().remove(champ_name.as_str());
+            }
         }
 
         // Always return true to indicate the need for a re-render.

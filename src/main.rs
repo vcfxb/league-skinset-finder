@@ -21,7 +21,6 @@ use crate::lanes::GLOBAL_LANES_MAP;
 mod lanes;
 mod skinsets;
 mod players;
-mod resolver;
 mod components;
 
 

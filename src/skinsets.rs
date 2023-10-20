@@ -1,6 +1,7 @@
 //! Champ Skinset table calculations. 
 
-use std::{collections::{HashMap, HashSet}, cell::RefCell};
+use std::collections::{HashMap, HashSet};
+use implicit_clone::unsync::IString;
 use scraper::{Html, Selector};
 use crate::lanes::Lane;
 
@@ -32,7 +33,7 @@ const USE_TABLE: &'static str = WIKI_SETS_TABLE;
 #[derive(Debug)]
 pub struct Skinsets {
     /// Map from champ name to the hash set of skinset names they can use.
-    champ_to_skinset_map: HashMap<String, HashSet<String>>,
+    champ_to_skinset_map: HashMap<IString, HashSet<IString>>,
 }
 
 impl Skinsets {
@@ -49,17 +50,18 @@ impl Skinsets {
         // Make an iterator to go over all the rows of the skinset table, skipping the header row.
         let row_iter = fragment.select(&rows_selector).skip(1);
         // Make the champ-skinset map to populate
-        let mut champ_to_skinset_map: HashMap<String, HashSet<String>> = HashMap::new();
+        let mut champ_to_skinset_map: HashMap<IString, HashSet<IString>> = HashMap::new();
 
         // Iterate over all the rows of the table.
-        for row_ref in  row_iter { 
+        for row_ref in row_iter { 
             // Get the set name. 
-            let set_name: String = row_ref
+            let set_name: IString = row_ref
                 .select(&set_name_selector)
                 .next()
                 .expect("finds set name")
                 .text()
-                .collect::<String>();
+                .collect::<String>()
+                .into();
 
             // // Skip any blacklisted skins.
             // if SKINSET_BLACKLIST.contains(&set_name.as_str()) { continue; }
@@ -77,6 +79,8 @@ impl Skinsets {
                         .expect("champion name available")
                         // Convert to owned string
                         .to_owned()
+                        // Convert to IString
+                        .into()
                 });
 
             // Add all of the champ-skinset mappings into the map. 
@@ -95,14 +99,14 @@ impl Skinsets {
     }
 
     /// Get the set of skinsets shared by all champs in a list. Note that the set may be empty.  
-    pub fn get_overlapping_skinsets(&self, champ_list: &[(&str, Lane)]) -> HashSet<String> {
+    pub fn get_overlapping_skinsets(&self, champ_list: &[(IString, Lane)]) -> HashSet<IString> {
         // Start with all the skins the first champ can use.
-        let mut intersection = self.champ_to_skinset_map[champ_list[0].0].clone();
+        let mut intersection = self.champ_to_skinset_map[&champ_list[0].0].clone();
 
         // For each of the remaining champs, reduce the intersection to overlapping skinsets.
         for (champ, _) in champ_list.iter().skip(1) {
             // Get a reference to this champ's skinsets.
-            let champ_skinsets = &self.champ_to_skinset_map[*champ];
+            let champ_skinsets = &self.champ_to_skinset_map[champ];
             // Clone and collect all the skinset names into the new intersection set. 
             intersection = intersection.intersection(champ_skinsets).cloned().collect();
         }

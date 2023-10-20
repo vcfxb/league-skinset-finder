@@ -1,9 +1,11 @@
 //! Champ lane table calculations.
 
-use std::{collections::HashMap, cell::RefCell, thread::LocalKey};
+use std::collections::HashMap;
 use derive_more::Display;
 use enumflags2::{BitFlags, bitflags};
+use implicit_clone::unsync::IString;
 use scraper::{Html, Selector};
+use serde::{Serialize, Deserialize};
 
 thread_local! {
     /// Global map relating champions to their playable lanes. 
@@ -23,7 +25,7 @@ const LANES_HTML: &'static str = include_str!("../assets/champ-lanes-table.html"
 /// Bitflaggable Lane enumeration for the available lanes in league. 
 #[bitflags]
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Display)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Display, Serialize, Deserialize)]
 pub enum Lane {
     Top,
     Jungle,
@@ -36,7 +38,7 @@ pub enum Lane {
 #[derive(Debug)]
 pub struct LanesMap {
     /// Map from champion to bitflags of default playable lanes. 
-    champ_to_lanes_map: HashMap<String, BitFlags<Lane>>,
+    champ_to_lanes_map: HashMap<IString, BitFlags<Lane>>,
 }
 
 impl LanesMap {
@@ -63,13 +65,14 @@ impl LanesMap {
                 .take(6);
 
             // Take the champ name from the iterator. 
-            let champ_name: String = cols_iterator
+            let champ_name: IString = cols_iterator
                 .next()
                 .expect("Finds champ name element")
                 .value()
                 .attr("data-sort-value")
                 .expect("Finds champ name attribute")
-                .to_owned();
+                .to_owned()
+                .into();
 
             // Make a lane bitflags to populate by iterating over the rest of the columns. 
             let mut lanes: BitFlags<Lane> = BitFlags::<Lane>::empty();
@@ -102,7 +105,7 @@ impl LanesMap {
     }
 
     /// Get a list of the name of every champ in the game. 
-    pub fn all_champs(&self) -> Vec<&String> {
+    pub fn all_champs(&self) -> Vec<&IString> {
         self.champ_to_lanes_map.keys().collect()
     }
 }
