@@ -17,7 +17,7 @@ yew = { version = "0.21.0", features = ["csr"] }
 web-sys = { version = "0.3.64" }
 
 # Icon pack to use with Yew -- Icons have to be included by feature name. 
-yew_icons = { version = "0.8.0", features = ["LucideExternalLink"] }
+yew_icons = { version = "0.8.0", features = ["LucideExternalLink", "BootstrapTrash", "BootstrapPersonAdd"] }
 
 # Use over std::time::Instant due to compatability issues with wasm
 instant = { version = "0.1.12", features = ["wasm-bindgen"] }
@@ -30,6 +30,7 @@ console_log = { version = "1.0.0", features = ["color"] }
 # Specify the `js` feature for getrandom to make sure that scraper compiles for wasm
 scraper = "0.17.1"
 getrandom = { version = "0.2", features = ["js"] }
+uuid = { version = "1.5.0", features = ["v4"] }
 
 # For build script to timestamp every build. 
 [build-dependencies]

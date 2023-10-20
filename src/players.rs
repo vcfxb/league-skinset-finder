@@ -78,6 +78,7 @@ const EMMA: Player = Player {
         "Taliyah",
         "Varus",
         "Viego",
-        "Xayah"
+        "Xayah",
+        "Vayne"
     ],
 };

@@ -33,8 +33,6 @@ const USE_TABLE: &'static str = WIKI_SETS_TABLE;
 pub struct Skinsets {
     /// Map from champ name to the hash set of skinset names they can use.
     champ_to_skinset_map: HashMap<String, HashSet<String>>,
-    /// The set of skinsets the user does not want to use/play. 
-    skinset_blacklist: RefCell<HashSet<String>>
 }
 
 impl Skinsets {
@@ -93,7 +91,7 @@ impl Skinsets {
             }   
         }
 
-        Self { champ_to_skinset_map, skinset_blacklist: RefCell::new(HashSet::new()) }
+        Self { champ_to_skinset_map }
     }
 
     /// Get the set of skinsets shared by all champs in a list. Note that the set may be empty.  

@@ -35,11 +35,10 @@ pub enum Lane {
 /// Map of champs to their playable lanes. 
 #[derive(Debug)]
 pub struct LanesMap {
-    /// Map from champion to bitflags of playable lanes. 
+    /// Map from champion to bitflags of default playable lanes. 
     champ_to_lanes_map: HashMap<String, BitFlags<Lane>>,
-    /// Any additional champ -> lane overrides. If a champ is present here, ignore its entry in the other field. 
-    lane_overrides: RefCell<HashMap<String, BitFlags<Lane>>>
 }
+
 impl LanesMap {
     /// Construct a new [`LanesMap`] by scraping the downloaded HTML fragment and adding overrides. 
     fn new() -> Self {
@@ -89,19 +88,12 @@ impl LanesMap {
                 }
             }
 
-            // // Check if there are any lane overrides.
-            // for (champ, lane) in MANUAL_LANE_OVERRIDES {
-            //     if *champ == champ_name {
-            //         lanes |= *lane;
-            //     }
-            // }
-
             // Add the champ and their lanes to the map. We use insert rather than upsert here because we assume there
             // are no duplicates in the table. 
             champ_to_lanes_map.insert(champ_name, lanes);
         }
 
-        Self { champ_to_lanes_map, lane_overrides: RefCell::new(HashMap::new()) }
+        Self { champ_to_lanes_map }
     }
 
     /// Get the lanes a champ is playable in. 

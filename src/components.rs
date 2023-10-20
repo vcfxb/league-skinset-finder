@@ -7,6 +7,7 @@ use yew::prelude::*;
 use link::Link;
 use crate::lanes::Lane;
 use player::Player;
+use yew_icons::{Icon, IconId};
 
 pub mod player;
 pub mod link;
@@ -19,13 +20,13 @@ pub struct PlayerRecord {
     /// Player name (optional -- resolve with player number otherwise).
     pub name: Option<Rc<str>>,
     /// List of champs and what lanes for them. 
-    pub champs: HashMap<Rc<str>, BitFlags<Lane>>
+    pub champs: Rc<HashMap<AttrValue, BitFlags<Lane>>>
 }
 
 impl PlayerRecord {
     /// Create a new player with a given number and otherwise empty fields. 
     pub fn new(exclude: bool) -> Self {
-        Self { exclude, name: None, champs: HashMap::new() }
+        Self { exclude, name: None, champs: Rc::new(HashMap::new()) }
     }
 }
 
@@ -41,7 +42,16 @@ pub enum Msg {
     PlayerToggle {
         index: usize,
         state: bool
-    }
+    },
+
+    /// Add a player on to the end of the list.
+    AddPlayer,
+
+    /// Remove a player from the list.
+    RemovePlayer {
+        /// The index of the player to remove. 
+        player_index: usize,
+    },
 }
 
 /// The main component that the frontend is rendered as. 
@@ -76,6 +86,10 @@ impl Component for App {
             },
 
             Msg::PlayerToggle { index, state } => unimplemented!(),
+
+            Msg::AddPlayer => if self.players.len() <= 5 { self.players.push(PlayerRecord::new(false)) }
+
+            Msg::RemovePlayer { player_index } => if self.players.len() >= 1 { self.players.remove(player_index); }
         }
 
         // Always return true to indicate the need for a re-render.
@@ -83,6 +97,9 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        // Resolve whether any players can be removed currently. 
+        let enable_player_removal = self.players.len() > 1;
+
         html! {
             <>
                 <div class="mt-3 card bg-light text-dark"> 
@@ -113,15 +130,47 @@ impl Component for App {
                         .enumerate()
                         .map(|(id, player)| {
                             html! { 
-                                <Player player_number={id as u8 + 1} on_name_change={
-                                    ctx.link().callback(move |new_name| {
-                                        Msg::PlayerNameUpdate { index: id, new_name }
-                                    })
-                                } /> 
+                                <Player 
+                                    {id}
+                                    name={player.name.clone()}
+                                    champs={player.champs.clone()}
+
+                                    on_name_change={
+                                        ctx.link().callback(move |new_name| {
+                                            Msg::PlayerNameUpdate { index: id, new_name }
+                                        })
+                                    }
+
+                                    enable_remove={enable_player_removal}
+                                    on_remove={
+                                        ctx.link().callback(move |_| {
+                                            Msg::RemovePlayer { player_index: id }
+                                        })
+                                    }
+
+                                /> 
                             }
                         })
                         .collect::<Html>()
                 }
+
+                // Block button to add a player. 
+                <div class={"d-grid gap-2 mt-2"}> 
+                    <button 
+                        type={"button"} 
+                        class={"btn btn-success"}
+                        disabled={self.players.len() == 5}
+
+                        // On-click handler to add a player.
+                        onclick={
+                            ctx.link().callback(move |_| {
+                                Msg::AddPlayer
+                            })
+                        }
+                    >
+                        <Icon icon_id={IconId::BootstrapPersonAdd} /> {" Add Player"}
+                    </button>
+                </div>
             </>
         }
     }
