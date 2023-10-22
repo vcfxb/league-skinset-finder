@@ -108,9 +108,6 @@ impl Component for App {
             Msg::PlayerNameUpdate { index, new_name } => {
                 // Update the player name in this object's model. 
                 self.players[index].name = if new_name.is_empty() { None } else { Some(new_name.into()) };
-
-                // Test log message
-                log::info!("{:#?}", self.players);
             },
 
             Msg::PlayerToggle { index, state } => unimplemented!(),
