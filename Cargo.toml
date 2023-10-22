@@ -16,7 +16,7 @@ enumflags2 = { version = "0.7.8", features = ["std", "serde"] }
 yew = { version = "0.21.0", features = ["csr"] }
 
 # Some utilities for dealing with web frontend stuff.
-web-sys = { version = "0.3.64" }
+web-sys = { version = "0.3.64", features = ["HtmlSelectElement"] }
 
 # Force serde support for some yew types re-exported from implicit-clone
 implicit-clone = { version = "^0.4.1", features = ["serde"] }

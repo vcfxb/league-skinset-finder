@@ -1,9 +1,8 @@
 //! Yew components to build out the League Skinset Finder frontend. 
 
-use std::{collections::HashMap, rc::Rc, cell::RefCell};
+use std::{rc::Rc, cell::RefCell};
 
 use enumflags2::BitFlags;
-use implicit_clone::unsync::IString;
 use yew::prelude::*;
 use link::Link;
 use crate::lanes::Lane;
@@ -11,8 +10,10 @@ use player::Player;
 use yew_icons::{Icon, IconId};
 use serde::{Serialize, Deserialize};
 
-pub mod player;
-pub mod link;
+mod player;
+mod link;
+mod checkbox;
+mod button;
 
 /// State persisted for each player in the frontend. 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -23,13 +24,13 @@ pub struct PlayerRecord {
     pub name: Option<AttrValue>,
     /// List of champs and what lanes for them. This is stored in an [`Rc`]'d [`RefCell`] for easy cloning/sharing
     /// with interior mutability. 
-    pub champs: Rc<RefCell<HashMap<AttrValue, BitFlags<Lane>>>>
+    pub champs: Rc<RefCell<Vec<(AttrValue, BitFlags<Lane>)>>>
 }
 
 impl PlayerRecord {
     /// Create a new player with a given number and otherwise empty fields. 
     pub fn new(exclude: bool) -> Self {
-        Self { exclude, name: None, champs: Rc::new(RefCell::new(HashMap::new())) }
+        Self { exclude, name: None, champs: Rc::new(RefCell::new(Vec::with_capacity(160))) }
     }
 }
 
@@ -56,28 +57,32 @@ pub enum Msg {
         player_index: usize,
     },
 
-    /// Add a champion to a player's list of playable champions.
-    /// This message gets re-sent when a player changes the lanes for a champ too, 
-    /// so be ready to handle that. 
-    AddChampToPlayer {
-        /// The index of the player in the players list.
-        player_index: usize,
-        /// The name of the champion being added to this player. 
-        champ_name: String,
-        /// The lanes that the player is willing to play this champion.
-        lanes: BitFlags<Lane>
-    },
+    // /// Add a champion to a player's list of playable champions.
+    // /// This message gets re-sent when a player changes the lanes for a champ too, 
+    // /// so be ready to handle that. 
+    // AddChampToPlayer {
+    //     /// The index of the player in the players list.
+    //     player_index: usize,
+    //     /// The name of the champion being added to this player. 
+    //     champ_name: String,
+    //     /// The lanes that the player is willing to play this champion.
+    //     lanes: BitFlags<Lane>
+    // },
 
-    /// Removes a champ from a player's list of playable champions.
-    RemoveChampFromPlayer {
-        /// The index of the player to remove the champ from.
-        player_index: usize,
-        /// The name of the champ to remove. 
-        champ_name: String,
-    }
+    // /// Removes a champ from a player's list of playable champions.
+    // RemoveChampFromPlayer {
+    //     /// The index of the player to remove the champ from.
+    //     player_index: usize,
+    //     /// The name of the champ to remove. 
+    //     champ_name: String,
+    // },
+
+    /// When a player updates their champ list this component has to re-render. 
+    PlayerChampListUpdate,
 }
 
 /// The main component that the frontend is rendered as. 
+#[derive(Debug)]
 pub struct App {
     /// The five players (max) in the league comp. 
     players: Vec<PlayerRecord>
@@ -114,16 +119,21 @@ impl Component for App {
 
             Msg::RemovePlayer { player_index } => if self.players.len() >= 1 { self.players.remove(player_index); }
 
-            Msg::AddChampToPlayer { player_index, champ_name, lanes } => {
-                // Mutably borrow the player's champs table. 
-                let mut champs_borrow = self.players[player_index].champs.borrow_mut();
-                // Set the champ's entry's lanes (upsert). 
-                *champs_borrow.entry(champ_name.into()).or_default() = lanes;
-            }
+            // Msg::AddChampToPlayer { player_index, champ_name, lanes } => {
+            //     // Mutably borrow the player's champs list. 
+            //     let mut champs_borrow = self.players[player_index].champs.borrow_mut();
+            //     // Check if the champ is in the list already. 
 
-            Msg::RemoveChampFromPlayer { player_index, champ_name } => {
-                self.players[player_index].champs.borrow_mut().remove(champ_name.as_str());
-            }
+            //     // Set the champ's entry's lanes (upsert). 
+            //     *champs_borrow.entry(champ_name.into()).or_default() = lanes;
+            // }
+
+            // Msg::RemoveChampFromPlayer { player_index, champ_name } => {
+            //     self.players[player_index].champs.borrow_mut().remove(champ_name.as_str());
+            // }
+
+            // No-op here except for the re-render at the end. 
+            Msg::PlayerChampListUpdate => {},
         }
 
         // Always return true to indicate the need for a re-render.
@@ -182,6 +192,7 @@ impl Component for App {
                                         })
                                     }
 
+                                    on_champ_list_update={ ctx.link().callback(move |_| Msg::PlayerChampListUpdate) }
                                 /> 
                             }
                         })
