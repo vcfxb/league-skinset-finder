@@ -14,12 +14,11 @@ mod player;
 mod link;
 mod checkbox;
 mod button;
+mod results_table;
 
 /// State persisted for each player in the frontend. 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerRecord {
-    /// Hide/exclude this player from view and calculation. 
-    pub exclude: bool,
     /// Player name (optional -- resolve with player number otherwise).
     pub name: Option<AttrValue>,
     /// List of champs and what lanes for them. This is stored in an [`Rc`]'d [`RefCell`] for easy cloning/sharing
@@ -29,8 +28,8 @@ pub struct PlayerRecord {
 
 impl PlayerRecord {
     /// Create a new player with a given number and otherwise empty fields. 
-    pub fn new(exclude: bool) -> Self {
-        Self { exclude, name: None, champs: Rc::new(RefCell::new(Vec::with_capacity(160))) }
+    pub fn new() -> Self {
+        Self { name: None, champs: Rc::new(RefCell::new(Vec::with_capacity(170))) }
     }
 }
 
@@ -42,12 +41,6 @@ pub enum Msg {
         new_name: String,
     },
 
-    /// A player has been toggled into the calculations. 
-    PlayerToggle {
-        index: usize,
-        state: bool
-    },
-
     /// Add a player on to the end of the list.
     AddPlayer,
 
@@ -56,26 +49,6 @@ pub enum Msg {
         /// The index of the player to remove. 
         player_index: usize,
     },
-
-    // /// Add a champion to a player's list of playable champions.
-    // /// This message gets re-sent when a player changes the lanes for a champ too, 
-    // /// so be ready to handle that. 
-    // AddChampToPlayer {
-    //     /// The index of the player in the players list.
-    //     player_index: usize,
-    //     /// The name of the champion being added to this player. 
-    //     champ_name: String,
-    //     /// The lanes that the player is willing to play this champion.
-    //     lanes: BitFlags<Lane>
-    // },
-
-    // /// Removes a champ from a player's list of playable champions.
-    // RemoveChampFromPlayer {
-    //     /// The index of the player to remove the champ from.
-    //     player_index: usize,
-    //     /// The name of the champ to remove. 
-    //     champ_name: String,
-    // },
 
     /// When a player updates their champ list this component has to re-render. 
     PlayerChampListUpdate,
@@ -97,12 +70,12 @@ impl Component for App {
         // Create the list of players stored in this app.
         let mut players = Vec::with_capacity(5);
         // Add the default player.
-        players.push(PlayerRecord::new(false));
+        players.push(PlayerRecord::new());
         // Return
         App { players }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             // Handle a player updating their name. 
             Msg::PlayerNameUpdate { index, new_name } => {
@@ -110,24 +83,9 @@ impl Component for App {
                 self.players[index].name = if new_name.is_empty() { None } else { Some(new_name.into()) };
             },
 
-            Msg::PlayerToggle { index, state } => unimplemented!(),
-
-            Msg::AddPlayer => if self.players.len() <= 5 { self.players.push(PlayerRecord::new(false)) }
+            Msg::AddPlayer => if self.players.len() <= 5 { self.players.push(PlayerRecord::new()) }
 
             Msg::RemovePlayer { player_index } => if self.players.len() >= 1 { self.players.remove(player_index); }
-
-            // Msg::AddChampToPlayer { player_index, champ_name, lanes } => {
-            //     // Mutably borrow the player's champs list. 
-            //     let mut champs_borrow = self.players[player_index].champs.borrow_mut();
-            //     // Check if the champ is in the list already. 
-
-            //     // Set the champ's entry's lanes (upsert). 
-            //     *champs_borrow.entry(champ_name.into()).or_default() = lanes;
-            // }
-
-            // Msg::RemoveChampFromPlayer { player_index, champ_name } => {
-            //     self.players[player_index].champs.borrow_mut().remove(champ_name.as_str());
-            // }
 
             // No-op here except for the re-render at the end. 
             Msg::PlayerChampListUpdate => {},
@@ -142,7 +100,8 @@ impl Component for App {
         let enable_player_removal = self.players.len() > 1;
 
         html! {
-            <>
+            // Add a margin an padding to the bottom to force scroll bar to appear slightly sooner
+            <div class={"pb-5 mb-5"}>
                 <div class="mt-3 card bg-light text-dark"> 
                     <div class="container p-4"> 
                         <p class="h1"> {"League of Legends skinset finder"} </p>
@@ -197,7 +156,7 @@ impl Component for App {
                 }
 
                 // Block button to add a player. 
-                <div class={"d-grid gap-2 mt-2"}> 
+                <div class={"d-grid gap-2 my-2"}> 
                     <button 
                         type={"button"} 
                         class={"btn btn-success"}
@@ -213,7 +172,9 @@ impl Component for App {
                         <Icon icon_id={IconId::BootstrapPersonAdd} /> {" Add Player"}
                     </button>
                 </div>
-            </>
+
+                // Table component to be rendered here. 
+            </div>
         }
     }
 }

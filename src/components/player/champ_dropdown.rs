@@ -36,9 +36,11 @@ impl Component for ChampDropdown {
     // Custom `changed` implementation needed to deal with stupid select/auto-fill issue on firefox. 
     fn changed(&mut self, ctx: &Context<Self>, _: &Self::Properties) -> bool {
         if let Some(select) = self.select_ref.cast::<HtmlSelectElement>() {
-            // Get the new selected value.
-            let value = ctx.props().selected_champ.clone().unwrap_or("Select a champion...".into());
-            select.set_value(&value);
+            if let Some(selected_champ) = ctx.props().selected_champ.as_ref() {
+                select.set_value(&selected_champ);
+            } else {
+                select.set_value("Select a champion...");
+            }
         }
 
         true
@@ -64,30 +66,33 @@ impl Component for ChampDropdown {
             })
         };
 
+        // Make a list of all the champs and collect to a vec to keep as alphabetical. 
+        let mut all_listed_champs_alphabetical: Vec<&AttrValue> = props
+            .other_available_champs
+            .iter()
+            .chain(props.selected_champ.iter())
+            .collect();
+
+        all_listed_champs_alphabetical.sort();
 
         html! {
             // Form tag in here is necessary to prevent firefox from auto selecting an option
             <div class="form-floating">
                 <select ref={self.select_ref.clone()} id={select_id.clone()} class={"form-select"} aria-label={"Champion Selection"} {onchange} autocomplete="off">
-                
-                    // Selected champ
-                    if props.selected_champ.is_some() {
-                        <option selected={true} value={props.selected_champ.clone()}>
-                            {props.selected_champ.clone()}
-                        </option>
-                    } else {
+                    // If there is no selected champs
+                    if props.selected_champ.is_none() {
                         <option selected={true} disabled={true}>
                             {"Select a champion..."}
                         </option>
                     }
 
-                    // Other champs
+                    // All champs in list (handle for selections)
                     {
-                        props.other_available_champs
+                        all_listed_champs_alphabetical
                             .iter()
                             .map(|champ_name| {
                                 html! {
-                                    <option>
+                                    <option selected={Some(champ_name) == props.selected_champ.clone().as_ref().as_ref()}>
                                         {champ_name}
                                     </option>
                                 }

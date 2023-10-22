@@ -165,6 +165,7 @@ pub fn player(props: &PlayerProps) -> Html {
                 }
                 <li class={"list-group-item"}>
                     <ChampSelection
+                        selected_champ={None}
                         change_champ_callback={change_champ_callback.clone()}
                         other_available_champs={other_available_champs.clone()}
                         // Leave the lane-change callback and remove champ callback no-ops 

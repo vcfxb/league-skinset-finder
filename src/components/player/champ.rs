@@ -19,7 +19,6 @@ pub struct ChampSelection;
 #[derive(Properties, PartialEq)]
 pub struct ChampSelectionProps {
     /// The selected champion and lanes. 
-    #[prop_or_default]
     pub selected_champ: Option<(AttrValue, BitFlags<Lane>)>,
     /// The list of other champions not currently selected by this player. 
     pub other_available_champs: Rc<Vec<AttrValue>>,
