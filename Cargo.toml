@@ -22,7 +22,13 @@ web-sys = { version = "0.3.64", features = ["HtmlSelectElement"] }
 implicit-clone = { version = "^0.4.1", features = ["serde"] }
 
 # Icon pack to use with Yew -- Icons have to be included by feature name. 
-yew_icons = { version = "0.8.0", features = ["LucideExternalLink", "BootstrapTrash", "BootstrapPersonAdd"] }
+yew_icons = { version = "0.8.0", features = [
+    "LucideExternalLink", 
+    "BootstrapTrash", 
+    "BootstrapPersonAdd", 
+    "HeroiconsOutlineEye",
+    "HeroiconsOutlineEyeSlash"
+] }
 
 # Use over std::time::Instant due to compatability issues with wasm
 instant = { version = "0.1.12", features = ["wasm-bindgen"] }

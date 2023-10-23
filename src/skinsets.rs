@@ -10,14 +10,6 @@ thread_local! {
     pub static GLOBAL_SKINSETS_MAP: Skinsets = Skinsets::new();
 }
 
-// /// Skinsets we're not playing for various reasons. 
-// const SKINSET_BLACKLIST: &'static [&'static str] = &[
-//     // Blacklisted for being aesthetically incoherent
-//     "Legacy", 
-//     // Blacklisted for being ugly. 
-//     "Battlecast"
-// ];
-
 /// Include the wiki sets table from https://leagueoflegends.fandom.com/wiki/Champion_skin/Skin_themes.
 #[allow(unused)]
 const WIKI_SETS_TABLE: &'static str = include_str!("../assets/wiki-sets-table.html");
@@ -34,6 +26,9 @@ const USE_TABLE: &'static str = WIKI_SETS_TABLE;
 pub struct Skinsets {
     /// Map from champ name to the hash set of skinset names they can use.
     champ_to_skinset_map: HashMap<IString, HashSet<IString>>,
+
+    /// Use a once-cell here to lazily resolve the set of all champs when needed. 
+    set_of_all_skinsets: HashSet<IString>
 }
 
 impl Skinsets {
@@ -51,6 +46,8 @@ impl Skinsets {
         let row_iter = fragment.select(&rows_selector).skip(1);
         // Make the champ-skinset map to populate
         let mut champ_to_skinset_map: HashMap<IString, HashSet<IString>> = HashMap::new();
+        // Make set of all skinsets to store and pass out too. 
+        let mut set_of_all_skinsets: HashSet<IString> = HashSet::new();
 
         // Iterate over all the rows of the table.
         for row_ref in row_iter { 
@@ -63,8 +60,8 @@ impl Skinsets {
                 .collect::<String>()
                 .into();
 
-            // // Skip any blacklisted skins.
-            // if SKINSET_BLACKLIST.contains(&set_name.as_str()) { continue; }
+            // Insert/upsert into the set of all skinsets.
+            set_of_all_skinsets.insert(set_name.clone());
 
             // Get an iterator over all the champ names in this set.
             let champs_iter = row_ref
@@ -95,7 +92,7 @@ impl Skinsets {
             }   
         }
 
-        Self { champ_to_skinset_map }
+        Self { champ_to_skinset_map, set_of_all_skinsets }
     }
 
     /// Get the set of skinsets shared by all champs in a list. Note that the set may be empty.  
@@ -112,5 +109,10 @@ impl Skinsets {
         }
 
         intersection
+    }
+
+    /// Çlone a hash-set of all the skinsets in league currently. 
+    pub fn all_skinsets(&self) -> HashSet<IString> {
+        self.set_of_all_skinsets.clone()
     }
 }
