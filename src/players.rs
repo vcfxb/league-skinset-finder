@@ -17,8 +17,8 @@ const MADDIE: Player = Player {
     champs: &[
         "Caitlyn",
         "Jinx",
-        "Ashe",
-        "Jhin"
+        "Ahri",
+        "Ashe"
     ]
 };
 
@@ -42,7 +42,12 @@ const VENUS: Player = Player {
         "Lux",
         "Pantheon",
         "Illaoi",
-        "Gangplank"
+        "Gangplank",
+        "Seraphine",
+        "Rakan",
+        "Nasus",
+        "Garen",
+        "Karthus"
     ],
 };
 
@@ -79,6 +84,7 @@ const EMMA: Player = Player {
         "Taliyah",
         "Varus",
         "Viego",
-        "Xayah"
+        "Xayah",
+        "Vayne"
     ],
 };
