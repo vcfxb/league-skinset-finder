@@ -8,6 +8,14 @@ pub struct Player {
     pub champs: &'static [&'static str],
 }
 
+// Taken from other file getting removed. 
+// /// Used to manually add lanes to champions that are not otherwise considered kosher. 
+// const MANUAL_LANE_OVERRIDES: &'static [(&'static str, Lane)] = &[
+//     ("Caitlyn", Lane::Top),
+//     ("Cho'Gath", Lane::Support),
+// ];
+
+
 /// List of people playing
 pub const PLAYERS: &'static [Player] = &[VENUS, EMMA];
 

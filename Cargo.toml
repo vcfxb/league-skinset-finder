@@ -37,18 +37,20 @@ instant = { version = "0.1.12", features = ["wasm-bindgen"] }
 log = "0.4.20"
 console_log = { version = "1.0.0", features = ["color"] }
 
-# Scraper to extract tables from our source data. 
-# Specify the `js` feature for getrandom to make sure that scraper compiles for wasm
-scraper = "0.17.1"
-getrandom = { version = "0.2", features = ["js"] }
-
 # Universally unique identifier generation
 uuid = { version = "1.5.0", features = ["v4"] }
 
 # Serialization and deserizalization 
 serde = { version = "1.0.189", features = ["derive", "rc"] }
 
+# Need to specify feature for getrandom to make it work on wasm targets. 
+getrandom = { version = "0.2", features = ["js"] }
+
 # For build script to timestamp every build. 
 [build-dependencies]
+# Error handling 
 anyhow = "1.0"
-chrono = "0.4.31"
+# Unindent to normalize generated rust code. 
+unindent = "0.2.3"
+# Scraper to extract tables from our source data -- we do this at compile time. 
+scraper = "0.17.1"
