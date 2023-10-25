@@ -1,6 +1,6 @@
 //! Component/card listing all the skinsets to be played. 
 
-use std::{rc::Rc, cell::RefCell, collections::HashSet};
+use std::collections::HashSet;
 use uuid::Uuid;
 use yew::prelude::*;
 use crate::skinsets::{GLOBAL_SKINSETS_MAP, Skinsets};
@@ -31,9 +31,9 @@ pub enum Msg {
 #[derive(PartialEq, Properties)]
 pub struct SkinsetListProps {
     /// List of currently excluded skinsets.
-    pub excluded_skinsets: Rc<RefCell<HashSet<AttrValue>>>,
+    pub excluded_skinsets: HashSet<AttrValue>,
     /// Callback that gets emitted when the skinset section needs to be re-rendered. 
-    pub update_skinset_selection: Callback<()>,
+    pub update_skinset_selection: Callback<HashSet<AttrValue>>,
 }
 
 impl Component for SkinsetList {
@@ -54,41 +54,38 @@ impl Component for SkinsetList {
             }
 
             Msg::ExcludeAllSkinsets => {
-                // Make a new set that excludes all skins. 
-                let new_exclusion_set: HashSet<AttrValue> = GLOBAL_SKINSETS_MAP.with(Skinsets::all_skinsets).clone();
-
-                // Replace the skinset exclusion list with all skinsets.
-                ctx.props().excluded_skinsets.replace(new_exclusion_set);
-
-                // Tell the parent to re-render
-                ctx.props().update_skinset_selection.emit(());
+                // Make a new set that excludes all skins and emit it back to the parent. 
+                ctx.props()
+                    .update_skinset_selection
+                    .emit(GLOBAL_SKINSETS_MAP.with(Skinsets::all_skinsets));
 
                 // This component does not re-render post parent 
                 false
             }
 
             Msg::SelectAllSkinsets => {
-                // Clear the excluded skinsets set.
-                ctx.props().excluded_skinsets.borrow_mut().clear();
-                // Tell the parent to re-render
-                ctx.props().update_skinset_selection.emit(());
+                // Emit an empty set back to the parent. 
+                ctx.props()
+                    .update_skinset_selection
+                    .emit(HashSet::new());
+
                 // Do not re-render this component after the parent has re-rendered.
                 false
             }
 
             Msg::ToggleSkinset { skinset } => {
-                // Borrow the set of excluded skin sets.
-                let mut excluded_skinsets_borrow = ctx.props().excluded_skinsets.borrow_mut();
+                // Get the set of excluded skin sets.
+                let mut excluded_skinsets = ctx.props().excluded_skinsets.clone();
 
                 // Toggle the skinset in the hash set.
-                if excluded_skinsets_borrow.contains(&skinset) {
-                    excluded_skinsets_borrow.remove(&skinset);
+                if excluded_skinsets.contains(&skinset) {
+                    excluded_skinsets.remove(&skinset);
                 } else {
-                    excluded_skinsets_borrow.insert(skinset);
+                    excluded_skinsets.insert(skinset);
                 }
 
-                // Call the parent to re-render
-                ctx.props().update_skinset_selection.emit(());
+                // Send the updated version back to the parent. 
+                ctx.props().update_skinset_selection.emit(excluded_skinsets);
 
                 // Do not re-render this component separately. 
                 false
@@ -134,7 +131,7 @@ impl Component for SkinsetList {
                 if !self.collapsed {
                     <div class="card-body row row-cols-6" id={collapse_id.clone()}>
                         {{
-                            // Clone ref to excluded skinsets
+                            // Get excluded skinsets.
                             let excluded_skinsets = ctx.props().excluded_skinsets.clone();
                             
                             // Get list of all skinsets.
@@ -151,7 +148,7 @@ impl Component for SkinsetList {
                                 .iter()
                                 .map(|skinset: &AttrValue| {
                                     // Determine wether this skinset is checked. 
-                                    let checked = !excluded_skinsets.borrow().contains(skinset);
+                                    let checked = !excluded_skinsets.contains(skinset);
                                     // Make an ID for the checkbox.
                                     let checkbox_id: AttrValue = Uuid::new_v4().to_string().into();
                                     // Make a clone of the skinset to put in the callback.

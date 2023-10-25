@@ -1,8 +1,6 @@
 //! Player components in the league skinset finder. 
 
-
-
-use std::{rc::Rc, cell::RefCell};
+use std::rc::Rc;
 use yew::prelude::*;
 use enumflags2::BitFlags;
 use crate::lanes::{Lane, GLOBAL_LANES_MAP, LanesMap};
@@ -24,7 +22,7 @@ pub struct PlayerProps {
     pub name: Option<AttrValue>,
     /// List of champs this player plays. 
     /// This should only be updated by the parent component. 
-    pub champs: Rc<RefCell<Vec<(AttrValue, BitFlags<Lane>)>>>,
+    pub champs: Rc<Vec<(AttrValue, BitFlags<Lane>)>>,
     /// Callback to handle player name chane. 
     pub on_name_change: Callback<String>,
     /// Whether the remove player button is enabled (there need to be more than 6 champs).
@@ -32,9 +30,8 @@ pub struct PlayerProps {
     /// Callback called to rempove the player. 
     pub on_remove: Callback<()>,
     /// Callback to be emitted when this component update's its player's champ list. 
-    pub on_champ_list_update: Callback<()>,
+    pub on_champ_list_update: Callback<Vec<(AttrValue, BitFlags<Lane>)>>,
 }
-
 
 #[function_component(Player)]
 pub fn player(props: &PlayerProps) -> Html {
@@ -42,12 +39,12 @@ pub fn player(props: &PlayerProps) -> Html {
     let other_available_champs = GLOBAL_LANES_MAP.with(|lanes_map: &LanesMap| {
         // Get a list of all champions
         let all_champs = lanes_map.all_champs();
-        // Get a reference to the map of selected champs.
-        let selected_champs_borrow = props.champs.borrow();
+        // Get a reference to the list of selected champs.
+        let selected_champs = props.champs.as_slice();
         // Filter any selected champs out of the list of all champs.
         let mut filtered_champs = all_champs.into_iter()
             // Apply the filter
-            .filter(|champ| selected_champs_borrow.iter().all(|(selected_champ, _)| selected_champ != *champ))
+            .filter(|champ| selected_champs.iter().all(|(selected_champ, _)| selected_champ != *champ))
             // Clone all the IStrings (cheap because they're reference counted).
             .cloned()
             // Collect into Vec
@@ -66,19 +63,20 @@ pub fn player(props: &PlayerProps) -> Html {
         let callback = props.on_champ_list_update.clone();
 
         Callback::from(move |(old_champ, new_champ): (Option<AttrValue>, String)| {
-            // Mutably borrow the champ list.
-            let mut list_borrow = champs.borrow_mut();
+            // Take the champ list to modify.
+            let mut list = Rc::try_unwrap(champs.clone())
+                .unwrap_or_else(|e| (*e).clone());
             // If there is a champ to replace, find and replace them.
-            if let Some(entry) = list_borrow.iter_mut().find(|(champ, _)| Some(champ) == old_champ.as_ref()) {
+            if let Some(entry) = list.iter_mut().find(|(champ, _)| Some(champ) == old_champ.as_ref()) {
                 entry.0 = new_champ.into();
             } else {
                 // Get the default lanes for the champ. 
                 let default_lanes = GLOBAL_LANES_MAP.with(|lanes_map| lanes_map.lanes_for_champ(&new_champ));
-                list_borrow.push((new_champ.into(), default_lanes));
+                list.push((new_champ.into(), default_lanes));
             }
             
-            // Emit a callback to re-render.
-            callback.emit(())
+            // Emit a callback to update the parent. 
+            callback.emit(list)
         })
     };
 
@@ -90,10 +88,11 @@ pub fn player(props: &PlayerProps) -> Html {
         let callback = props.on_champ_list_update.clone();
 
         Callback::from(move |(champ_name, new_lanes): (AttrValue, BitFlags<Lane>)| {
-            // Mutably borrow the champ list.
-            let mut list_borrow = champs.borrow_mut();
+            // Get the current champ list. 
+            let mut list = Rc::try_unwrap(champs.clone())
+                .unwrap_or_else(|e| (*e).clone());
             // Find the champ in the champ list.
-            let entry = list_borrow
+            let entry = list
                 .iter_mut()
                 .find(|(champ, _)| champ == &champ_name)
                 .expect("found champ entry");
@@ -101,7 +100,7 @@ pub fn player(props: &PlayerProps) -> Html {
             // Update their lanes.
             entry.1 = new_lanes;
             // Emit the callback to re-render.
-            callback.emit(());  
+            callback.emit(list);  
         })
     };
 
@@ -113,11 +112,12 @@ pub fn player(props: &PlayerProps) -> Html {
         let callback = props.on_champ_list_update.clone();
 
         Callback::from(move |champ_name: AttrValue| {
-            // Mutably borrow the champ list.
-            let mut list_borrow = champs.borrow_mut();
+            // Get the current champ list. 
+            let mut list= Rc::try_unwrap(champs.clone())
+                .unwrap_or_else(|e| (*e).clone());
 
             // Get the index of the champion to remove from the list.
-            let index_to_remove = list_borrow
+            let index_to_remove = list
                 .iter()
                 .enumerate()
                 .find(|(_, (champ, _))| champ == &champ_name)
@@ -125,9 +125,9 @@ pub fn player(props: &PlayerProps) -> Html {
                 .0;
 
             // Remove the champ at that index. 
-            list_borrow.remove(index_to_remove);
-            // Emit the callback to re-render
-            callback.emit(());
+            list.remove(index_to_remove);
+            // Emit the callback to update the parent. 
+            callback.emit(list);
         })
     };
 
@@ -148,7 +148,7 @@ pub fn player(props: &PlayerProps) -> Html {
             // Champ selectors.
             <ul class={"list-group list-group-flush"}>
                 {
-                    props.champs.borrow().iter().map(|(champ_name, lanes)| html!{
+                    props.champs.as_slice().iter().map(|(champ_name, lanes)| html!{
                         <li class={"list-group-item"}>
                             <ChampSelection
                                 change_champ_callback={change_champ_callback.clone()}

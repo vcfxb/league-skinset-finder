@@ -1,12 +1,10 @@
 //! The results table component, used to render the skinsets resolved for the selected champs. 
 
-use std::{rc::Rc, cell::RefCell, collections::HashSet};
-
+use std::collections::HashSet;
 use instant::Instant;
 use yew::prelude::*;
 use crate::{lanes::Lane, skinsets::{GLOBAL_SKINSETS_MAP, Skinsets}};
 use super::PlayerRecord;
-
 
 /// Get a list of every combination of champs that this set of players could queue. 
 /// This list will match the order of the list of players stored in the app. 
@@ -19,7 +17,7 @@ fn resolve_all_champ_combinations(players: &[PlayerRecord]) -> Vec<Vec<(AttrValu
         // One player -- suggest any of their champs in any available lane. 
         1 => {
             // Borrow the players champ list.
-            let champs_list = players[0].champs.borrow();
+            let champs_list = players[0].champs.as_slice();
             // Create new result vec to populate -- starting capacity is at least the number of 
             // champs for the player. 
             let mut result: Vec<Vec<(AttrValue, Lane)>> = Vec::with_capacity(champs_list.len());
@@ -39,7 +37,7 @@ fn resolve_all_champ_combinations(players: &[PlayerRecord]) -> Vec<Vec<(AttrValu
             // Get a list of all champ combinataions not including the first player. 
             let others: Vec<Vec<(AttrValue, Lane)>> = resolve_all_champ_combinations(&players[1..]);
             // Borrow the first player's champ list.
-            let champ_list = players[0].champs.borrow();
+            let champ_list = players[0].champs.as_slice();
             // Make a list to copy results into. 
             let mut result = Vec::new();
 
@@ -76,29 +74,105 @@ pub struct ResultsTableProps {
     /// The list of players with their champ selections. 
     pub players: Vec<PlayerRecord>,
     /// The set of skinsets to exclude from results. 
-    pub skinsets_excluded: Rc<RefCell<HashSet<AttrValue>>>,
+    pub skinsets_excluded: HashSet<AttrValue>,
 }
 
-#[function_component(ResultsTable)]
-pub fn results_table(props: &ResultsTableProps) -> Html {
-    // Track the start instant so we can log resolution/render times. 
-    let start = Instant::now();
-    // Get an iterator over the champ-combinations that could be played. 
-    let all_comps = resolve_all_champ_combinations(&props.players);
-    // Log info on resolution speed. 
-    log::info!("Resolved all champion combos in {:?}", Instant::now() - start);
-    // Get an iterator over the champ combinations that filters out any with no-overlapping, non-excluded skinsets.
-    let displayed_comps = all_comps
-        .into_iter()
-        // Add the set of overlapping 
-        .map(|champ_combo: Vec<(AttrValue, Lane)>| { 
-            (champ_combo, GLOBAL_SKINSETS_MAP.with(|s: Skinsets| s.get_overlapping_skinsets(&champ_combo)))
-        })
-        .filter(|(_, overlapping_skinsets)| {
+/// Results table component. 
+pub struct ResultsTable;
 
-        })
+impl Component for ResultsTable {
+    type Message = ();
 
-    html! {
+    type Properties = ResultsTableProps;
 
+    fn create(_: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // Get the component props.
+        let props = ctx.props();
+        
+        // Track the start instant so we can log resolution/render times. 
+        let start = Instant::now();
+        // Get an iterator over the champ-combinations that could be played. 
+        let all_comps = resolve_all_champ_combinations(&props.players);
+        // Log info on resolution speed. 
+        log::info!("Resolved all champion combos in {:?}", Instant::now() - start);
+        // Get an iterator over the champ combinations that filters out any with no-overlapping, non-excluded skinsets.
+        let displayed_comps = all_comps
+            .into_iter()
+            // Add the set of overlapping non-excluded skinsets. 
+            .map(|champ_combo: Vec<(AttrValue, Lane)>| { 
+                // Get the list of overlapping skinsets.
+                let overlapping_skinsets: HashSet<AttrValue> = GLOBAL_SKINSETS_MAP
+                    .with(|s: &Skinsets| s.get_overlapping_skinsets(&champ_combo));
+
+                // Remove any excluded/unwanted skinsets.
+                let final_skinsets: Vec<AttrValue> = overlapping_skinsets
+                    .difference(&props.skinsets_excluded)
+                    .cloned()
+                    .collect();
+
+                (champ_combo, final_skinsets)
+            })
+            // Filter out champ combos with no skinsets
+            .filter(|(_, skinsets)| !skinsets.is_empty());
+
+        html! {
+            <div class="card m-2"> 
+                <div class="card-body">
+                    <table class="table table-stripped">
+                        <tr>
+                            {
+                                props.players
+                                    .iter()
+                                    .enumerate()
+                                    .map(|(id, player)| {
+                                        // Resolve the player name
+                                        let player_name = player
+                                            .clone()
+                                            .name
+                                            .unwrap_or_else(|| format!("Player {}", id + 1).into());
+    
+                                        html! {
+                                            <th> {player_name} </th>
+                                        }
+                                    })
+                                    .collect::<Html>()
+                            }
+    
+                            // Header for skinsets collumn
+                            <th> {"Overlapping Skinsets"} </th>
+                        </tr>
+    
+                        // Table data
+                        {
+                            displayed_comps
+                                .map(|(champ_combo, skinsets): (Vec<(AttrValue, Lane)>, Vec<AttrValue>)| html! {
+                                    <tr>
+                                        // Champs and lanes
+                                        {
+                                            champ_combo
+                                                .into_iter()
+                                                .map(|(champ, lane): (AttrValue, Lane)| html! {
+                                                    <td> {champ} {" "} {lane} </td>
+                                                })
+                                                .collect::<Html>()
+                                        }
+    
+                                        <td>
+                                            {
+                                                skinsets.join(", ")
+                                            }
+                                        </td>
+                                    </tr>
+                                })
+                                .collect::<Html>()
+                        }
+                    </table>
+                </div>
+            </div>
+        }
     }
 }

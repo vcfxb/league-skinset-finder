@@ -1,6 +1,6 @@
 //! Yew components to build out the League Skinset Finder frontend. 
 
-use std::{rc::Rc, cell::RefCell, collections::HashSet};
+use std::{collections::HashSet, rc::Rc};
 use enumflags2::BitFlags;
 use yew::prelude::*;
 use link::Link;
@@ -9,6 +9,7 @@ use player::Player;
 use yew_icons::{Icon, IconId};
 use serde::{Serialize, Deserialize};
 use skinset_list::SkinsetList;
+use results_table::ResultsTable;
 
 mod player;
 mod link;
@@ -24,13 +25,13 @@ pub struct PlayerRecord {
     pub name: Option<AttrValue>,
     /// List of champs and what lanes for them. This is stored in an [`Rc`]'d [`RefCell`] for easy cloning/sharing
     /// with interior mutability. 
-    pub champs: Rc<RefCell<Vec<(AttrValue, BitFlags<Lane>)>>>
+    pub champs: Rc<Vec<(AttrValue, BitFlags<Lane>)>>,
 }
 
 impl PlayerRecord {
     /// Create a new player with a given number and otherwise empty fields. 
     pub fn new() -> Self {
-        Self { name: None, champs: Rc::new(RefCell::new(Vec::with_capacity(170))) }
+        Self { name: None, champs: Rc::new(Vec::with_capacity(170)) }
     }
 }
 
@@ -52,16 +53,15 @@ pub enum Msg {
     },
 
     /// When a player updates their champ list this component has to re-render. 
-    PlayerChampListUpdate,
-
-    /// Sent to exclude a skinset from consideration.
-    ExcludeSkinset { skinset: AttrValue },
-
-    /// Sent to remove a skinset from being excluded.
-    IncludeSkinset { skinset: AttrValue },
+    PlayerChampListUpdate {
+        player_id: usize,
+        new_champ_list: Vec<(AttrValue, BitFlags<Lane>)>
+    },
 
     /// When the list of skinsets is updated this component has to re-render. 
-    SkinsetListUpdate,
+    SkinsetListUpdate {
+        new_skinset_exclusion_list: HashSet<AttrValue>
+    },
 }
 
 /// The main component that the frontend is rendered as. 
@@ -70,7 +70,7 @@ pub struct App {
     /// The five players (max) in the league comp. 
     players: Vec<PlayerRecord>,
     /// The list of skins excluded from consideration. 
-    skinsets_excluded: Rc<RefCell<HashSet<AttrValue>>>,
+    skinsets_excluded: HashSet<AttrValue>,
 }
 
 impl Component for App {
@@ -79,6 +79,7 @@ impl Component for App {
     type Properties = ();
 
     fn create(_: &Context<Self>) -> Self {
+        log::info!("App component created");
         // Create the list of players stored in this app.
         let mut players = Vec::with_capacity(5);
         // Add the default player.
@@ -86,7 +87,7 @@ impl Component for App {
         // Make default list of skinsets to exclude 
         let skinsets_excluded = ["N/A", "Legacy"].into_iter().map(AttrValue::from).collect();
         // Return
-        App { players, skinsets_excluded: Rc::new(RefCell::new(skinsets_excluded)) }
+        App { players, skinsets_excluded: skinsets_excluded }
     }
 
     fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
@@ -101,14 +102,19 @@ impl Component for App {
 
             Msg::RemovePlayer { player_index } => if self.players.len() >= 1 { self.players.remove(player_index); }
 
-            Msg::ExcludeSkinset { skinset } => { self.skinsets_excluded.borrow_mut().insert(skinset); }
+            Msg::SkinsetListUpdate { new_skinset_exclusion_list } => {
+                // Replace the state and re-render.
+                self.skinsets_excluded = new_skinset_exclusion_list;
+            }
 
-            Msg::IncludeSkinset { skinset } => { self.skinsets_excluded.borrow_mut().remove(&skinset); }
-
-            // No-op here except for the re-render at the end. 
-            Msg::PlayerChampListUpdate | Msg::SkinsetListUpdate => {}
+            Msg::PlayerChampListUpdate { player_id, new_champ_list } => {
+                // Update appropriate champ list and re-render. 
+                self.players[player_id].champs = Rc::new(new_champ_list);
+            }
         }
 
+        // 
+        log::info!("Re-rendering page");
         // Always return true to indicate the need for a re-render.
         true
     }
@@ -145,7 +151,10 @@ impl Component for App {
 
                 <SkinsetList 
                     excluded_skinsets={self.skinsets_excluded.clone()} 
-                    update_skinset_selection={ ctx.link().callback(move |_| Msg::SkinsetListUpdate) }
+                    
+                    update_skinset_selection={ 
+                        ctx.link().callback(move |new_value| Msg::SkinsetListUpdate { new_skinset_exclusion_list: new_value }) 
+                    }
                 />
                 
                 {
@@ -171,7 +180,10 @@ impl Component for App {
                                         })
                                     }
 
-                                    on_champ_list_update={ ctx.link().callback(move |_| Msg::PlayerChampListUpdate) }
+                                    on_champ_list_update={ ctx.link().callback(move |new_champ_list| Msg::PlayerChampListUpdate {
+                                        player_id: id,
+                                        new_champ_list
+                                    }) }
                                 /> 
                             }
                         })
@@ -197,6 +209,7 @@ impl Component for App {
                 </div>
 
                 // Table component to be rendered here. 
+                <ResultsTable players={self.players.clone()} skinsets_excluded={self.skinsets_excluded.clone()} />
             </div>
         }
     }
