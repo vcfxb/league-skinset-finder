@@ -9,7 +9,9 @@ const SKINSET_BLACKLIST: &'static [&'static str] = &[
     // Blacklisted for being aesthetically incoherent
     "Legacy", 
     // Blacklisted for being ugly. 
-    "Battlecast"
+    "Battlecast",
+    // Many ugly skins
+    "Infernal"
 ];
 
 /// Include the wiki sets table from https://leagueoflegends.fandom.com/wiki/Champion_skin/Skin_themes.

@@ -10,7 +10,7 @@ pub struct Player {
 }
 
 /// List of people playing
-pub const PLAYERS: &'static [Player] = &[MADDIE, TONI, VENUS, EMMA];
+pub const PLAYERS: &'static [Player] = &[TONI, VENUS, EMMA];
 
 const MADDIE: Player = Player {
     name: "Maddie",
@@ -43,11 +43,12 @@ const VENUS: Player = Player {
         "Pantheon",
         "Illaoi",
         "Gangplank",
-        "Seraphine",
+        // "Seraphine",
         "Rakan",
         "Nasus",
         "Garen",
-        "Karthus"
+        "Karthus",
+        "Hecarim"
     ],
 };
 
@@ -85,6 +86,10 @@ const EMMA: Player = Player {
         "Varus",
         "Viego",
         "Xayah",
-        "Vayne"
+        "Vayne",
+        "Aphelios",
+        "Trundle",
+        "Aatrox",
+        "Rakan"
     ],
 };
