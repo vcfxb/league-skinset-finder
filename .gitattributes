@@ -1,0 +1,2 @@
+# Ignore all the files in assets from the GitHub linguist calculations.
+assets/** linguist-vendored
