@@ -1,21 +1,21 @@
-//! Lane selector component attached to champ selector. 
+//! Lane selector component attached to champ selector.
 
+use crate::components::checkbox::Checkbox;
+use crate::lanes::Lane;
 use enumflags2::BitFlags;
 use uuid::Uuid;
 use yew::prelude::*;
-use crate::lanes::Lane;
-use crate::components::checkbox::Checkbox;
 
 /// Properties passed to the lane selection component.
 #[derive(PartialEq, Properties)]
 pub struct LaneSelectProps {
-    /// The selected lanes. 
+    /// The selected lanes.
     pub lanes: BitFlags<Lane>,
     /// The callback emitted when the selected lanes are updated.
-    pub update_lanes_callback: Callback<BitFlags<Lane>>
+    pub update_lanes_callback: Callback<BitFlags<Lane>>,
 }
 
-/// Lane selectionc component attached to each champ. 
+/// Lane selectionc component attached to each champ.
 #[function_component(LaneSelect)]
 pub fn lanes_select(props: &LaneSelectProps) -> Html {
     // Make an iterator that generates a unique checkbox id for each lane/checkbox.
@@ -23,24 +23,22 @@ pub fn lanes_select(props: &LaneSelectProps) -> Html {
         .iter()
         .map(|_| AttrValue::from(Uuid::new_v4().to_string()));
 
-    // Make iterator that generates a callback for each lane's checkbox. 
-    let callbacks = BitFlags::<Lane>::all()
-        .iter()
-        .map(|lane| {
-            // Clone the passed callback (cheap Rc clone).
-            let callback = props.update_lanes_callback.clone();
-            // Copy the passed lanes from the props. 
-            let lanes = props.lanes;
+    // Make iterator that generates a callback for each lane's checkbox.
+    let callbacks = BitFlags::<Lane>::all().iter().map(|lane| {
+        // Clone the passed callback (cheap Rc clone).
+        let callback = props.update_lanes_callback.clone();
+        // Copy the passed lanes from the props.
+        let lanes = props.lanes;
 
-            Callback::from(move |checked: bool| {
-                // Move the lanes from the outer scope into this callback. 
-                let mut lanes = lanes;
-                // Toggle the lane that this checkbox coresponds to. 
-                lanes.set(lane, checked);
-                // Emit the updated lanes to the callback. 
-                callback.emit(lanes);
-            })
-        });
+        Callback::from(move |checked: bool| {
+            // Move the lanes from the outer scope into this callback.
+            let mut lanes = lanes;
+            // Toggle the lane that this checkbox coresponds to.
+            lanes.set(lane, checked);
+            // Emit the updated lanes to the callback.
+            callback.emit(lanes);
+        })
+    });
 
     // Make an iterator with each lane, id, and callback.
     let zipped_iter = BitFlags::<Lane>::all()

@@ -2,24 +2,24 @@
 
 use std::rc::Rc;
 use uuid::Uuid;
-use yew::prelude::*;
 use web_sys::HtmlSelectElement;
+use yew::prelude::*;
 
-/// Properties passed to the champion dropdown component. 
+/// Properties passed to the champion dropdown component.
 #[derive(Properties, PartialEq)]
 pub struct ChampDropdownProps {
-    /// The selected champ, if there is one. 
+    /// The selected champ, if there is one.
     pub selected_champ: Option<AttrValue>,
     /// Shared list of all other available champs to select from
     pub other_available_champs: Rc<Vec<AttrValue>>,
-    /// Callback emitted when a new champ is selected. 
+    /// Callback emitted when a new champ is selected.
     pub on_change: Callback<String>,
-} 
+}
 
-/// Dropdown component to choose a champ from. 
+/// Dropdown component to choose a champ from.
 #[derive(Debug)]
 pub struct ChampDropdown {
-    /// Node ref used to identify the select element. 
+    /// Node ref used to identify the select element.
     select_ref: NodeRef,
 }
 
@@ -29,11 +29,12 @@ impl Component for ChampDropdown {
     type Properties = ChampDropdownProps;
 
     fn create(_: &Context<Self>) -> Self {
-        ChampDropdown { select_ref: NodeRef::default() }
+        ChampDropdown {
+            select_ref: NodeRef::default(),
+        }
     }
 
-
-    // Custom `changed` implementation needed to deal with stupid select/auto-fill issue on firefox. 
+    // Custom `changed` implementation needed to deal with stupid select/auto-fill issue on firefox.
     fn changed(&mut self, ctx: &Context<Self>, _: &Self::Properties) -> bool {
         if let Some(select) = self.select_ref.cast::<HtmlSelectElement>() {
             if let Some(selected_champ) = ctx.props().selected_champ.as_ref() {
@@ -47,14 +48,14 @@ impl Component for ChampDropdown {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        // Get a reference to the properties passed to this component. 
+        // Get a reference to the properties passed to this component.
         let props = ctx.props();
         // Make a node ID to connect the select to the label.
         let select_id: AttrValue = Uuid::new_v4().to_string().into();
 
-        // Make the event handler callback to be triggered when a champ is selected. 
+        // Make the event handler callback to be triggered when a champ is selected.
         let onchange = {
-            // Clone the callback to pass the selected champ to. 
+            // Clone the callback to pass the selected champ to.
             let callback = props.on_change.clone();
             // Clone the reference to the select node that we're waiting for a change on.
             let select_node_ref = self.select_ref.clone();
@@ -66,7 +67,7 @@ impl Component for ChampDropdown {
             })
         };
 
-        // Make a list of all the champs and collect to a vec to keep as alphabetical. 
+        // Make a list of all the champs and collect to a vec to keep as alphabetical.
         let mut all_listed_champs_alphabetical: Vec<&AttrValue> = props
             .other_available_champs
             .iter()

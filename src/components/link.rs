@@ -1,9 +1,8 @@
-/// Link components in the league skinset finder. 
-
+/// Link components in the league skinset finder.
 use yew::prelude::*;
-use yew_icons::{IconId, Icon};
+use yew_icons::{Icon, IconId};
 
-/// Properties passed to link components. 
+/// Properties passed to link components.
 #[derive(Properties, PartialEq)]
 pub struct LinkProps {
     /// Open this link in a new tab?
@@ -16,7 +15,7 @@ pub struct LinkProps {
     pub text: Option<AttrValue>,
 }
 
-/// Link component used for adding links to the league skinset finder. 
+/// Link component used for adding links to the league skinset finder.
 #[function_component(Link)]
 pub fn link(props: &LinkProps) -> Html {
     // Resolve the link text.
@@ -25,9 +24,9 @@ pub fn link(props: &LinkProps) -> Html {
     if props.open_in_new_tab {
         html! {
             <a href={&props.href} target="_blank" rel={"noreferrer noopener"}>
-                {link_text} 
+                {link_text}
                 {" "}
-                <Icon icon_id={IconId::LucideExternalLink} /> 
+                <Icon icon_id={IconId::LucideExternalLink} />
             </a>
         }
     } else {

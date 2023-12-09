@@ -1,75 +1,75 @@
-//! Yew components to build out the League Skinset Finder frontend. 
+//! Yew components to build out the League Skinset Finder frontend.
 
-use std::{collections::HashSet, rc::Rc};
-use enumflags2::BitFlags;
-use yew::prelude::*;
-use link::Link;
 use crate::lanes::Lane;
+use enumflags2::BitFlags;
+use link::Link;
 use player::Player;
-use yew_icons::{Icon, IconId};
-use serde::{Serialize, Deserialize};
-use skinset_list::SkinsetList;
 use results_table::ResultsTable;
+use serde::{Deserialize, Serialize};
+use skinset_list::SkinsetList;
+use std::{collections::HashSet, rc::Rc};
+use yew::prelude::*;
+use yew_icons::{Icon, IconId};
 
-mod player;
-mod link;
-mod checkbox;
 mod button;
+mod checkbox;
+mod link;
+mod player;
 mod results_table;
 mod skinset_list;
 
-/// State persisted for each player in the frontend. 
+/// State persisted for each player in the frontend.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct PlayerRecord {
     /// Player name (optional -- resolve with player number otherwise).
     pub name: Option<AttrValue>,
     /// List of champs and what lanes for them. This is stored in an [`Rc`]'d [`RefCell`] for easy cloning/sharing
-    /// with interior mutability. 
+    /// with interior mutability.
     pub champs: Rc<Vec<(AttrValue, BitFlags<Lane>)>>,
 }
 
 impl PlayerRecord {
-    /// Create a new player with a given number and otherwise empty fields. 
+    /// Create a new player with a given number and otherwise empty fields.
     pub fn new() -> Self {
-        Self { name: None, champs: Rc::new(Vec::with_capacity(170)) }
+        Self {
+            name: None,
+            champs: Rc::new(Vec::with_capacity(170)),
+        }
     }
 }
 
 /// Messages that can be passed to the top-level app.
 pub enum Msg {
-    /// A players name has been updated. 
-    PlayerNameUpdate {
-        index: usize,
-        new_name: String,
-    },
+    /// A players name has been updated.
+    PlayerNameUpdate { index: usize, new_name: String },
 
     /// Add a player on to the end of the list.
     AddPlayer,
 
     /// Remove a player from the list.
     RemovePlayer {
-        /// The index of the player to remove. 
+        /// The index of the player to remove.
         player_index: usize,
     },
 
-    /// When a player updates their champ list this component has to re-render. 
+    /// When a player updates their champ list this component has to re-render.
     PlayerChampListUpdate {
         player_id: usize,
-        new_champ_list: Vec<(AttrValue, BitFlags<Lane>)>
+        new_champ_list: Vec<(AttrValue, BitFlags<Lane>)>,
     },
 
-    /// When the list of skinsets is updated this component has to re-render. 
+    /// When the list of skinsets is updated this component has to re-render.
     SkinsetListUpdate {
-        new_skinset_exclusion_list: HashSet<AttrValue>
+        new_skinset_exclusion_list: HashSet<AttrValue>,
     },
 }
 
-/// The main component that the frontend is rendered as. 
+/// The main component that the frontend is rendered as.
 #[derive(Debug)]
 pub struct App {
-    /// The five players (max) in the league comp. 
+    /// The five players (max) in the league comp.
     players: Vec<PlayerRecord>,
-    /// The list of skins excluded from consideration. 
+    /// The list of skins excluded from consideration.
     skinsets_excluded: HashSet<AttrValue>,
 }
 
@@ -84,60 +84,80 @@ impl Component for App {
         let mut players = Vec::with_capacity(5);
         // Add the default player.
         players.push(PlayerRecord::new());
-        // Make default list of skinsets to exclude 
+        // Make default list of skinsets to exclude
         let skinsets_excluded = ["N/A", "Legacy"].into_iter().map(AttrValue::from).collect();
         // Return
-        App { players, skinsets_excluded: skinsets_excluded }
+        App {
+            players,
+            skinsets_excluded: skinsets_excluded,
+        }
     }
 
     fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            // Handle a player updating their name. 
+            // Handle a player updating their name.
             Msg::PlayerNameUpdate { index, new_name } => {
-                // Update the player name in this object's model. 
-                self.players[index].name = if new_name.is_empty() { None } else { Some(new_name.into()) };
-            },
+                // Update the player name in this object's model.
+                self.players[index].name = if new_name.is_empty() {
+                    None
+                } else {
+                    Some(new_name.into())
+                };
+            }
 
-            Msg::AddPlayer => if self.players.len() <= 5 { self.players.push(PlayerRecord::new()) }
+            Msg::AddPlayer => {
+                if self.players.len() <= 5 {
+                    self.players.push(PlayerRecord::new())
+                }
+            }
 
-            Msg::RemovePlayer { player_index } => if self.players.len() >= 1 { self.players.remove(player_index); }
+            Msg::RemovePlayer { player_index } => {
+                if self.players.len() >= 1 {
+                    self.players.remove(player_index);
+                }
+            }
 
-            Msg::SkinsetListUpdate { new_skinset_exclusion_list } => {
+            Msg::SkinsetListUpdate {
+                new_skinset_exclusion_list,
+            } => {
                 // Replace the state and re-render.
                 self.skinsets_excluded = new_skinset_exclusion_list;
             }
 
-            Msg::PlayerChampListUpdate { player_id, new_champ_list } => {
-                // Update appropriate champ list and re-render. 
+            Msg::PlayerChampListUpdate {
+                player_id,
+                new_champ_list,
+            } => {
+                // Update appropriate champ list and re-render.
                 self.players[player_id].champs = Rc::new(new_champ_list);
             }
         }
 
-        // 
+        //
         log::info!("Re-rendering page");
         // Always return true to indicate the need for a re-render.
         true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        // Resolve whether any players can be removed currently. 
+        // Resolve whether any players can be removed currently.
         let enable_player_removal = self.players.len() > 1;
 
         html! {
             // Add a margin an padding to the bottom to force scroll bar to appear slightly sooner
             <div class={"pb-5 mb-5"}>
-                <div class="mt-3 card bg-light text-dark"> 
-                    <div class="card-body"> 
+                <div class="mt-3 card bg-light text-dark">
+                    <div class="card-body">
                         <p class="h1"> {"League of Legends skinset finder"} </p>
                         <p> {"This tool is used to find League of Legend team comps that share skins from the same skinset."} </p>
-                        <p> 
-                            {"I currently source my skin data from "} 
+                        <p>
+                            {"I currently source my skin data from "}
                             <Link href="https://leagueoflegends.fandom.com/wiki/Champion_skin/Skin_themes" open_in_new_tab={true} />
                             {", and my lane data from "}
                             <Link href="https://leagueoflegends.fandom.com/wiki/List_of_champions_by_draft_position" open_in_new_tab={true} />
                             {"."}
                         </p>
-                        <p> {"Data was last updated from these sources on October 11th, 2023."} </p>
+                        <p> {"Data was last updated from these sources on December 8th, 2023."} </p>
                         <p>
                             {"
                             I will try to keep this generally up to date with league skins and champions, but may not always
@@ -149,20 +169,20 @@ impl Component for App {
                     </div>
                 </div>
 
-                <SkinsetList 
-                    excluded_skinsets={self.skinsets_excluded.clone()} 
-                    
-                    update_skinset_selection={ 
-                        ctx.link().callback(move |new_value| Msg::SkinsetListUpdate { new_skinset_exclusion_list: new_value }) 
+                <SkinsetList
+                    excluded_skinsets={self.skinsets_excluded.clone()}
+
+                    update_skinset_selection={
+                        ctx.link().callback(move |new_value| Msg::SkinsetListUpdate { new_skinset_exclusion_list: new_value })
                     }
                 />
-                
+
                 {
                     self.players.iter()
                         .enumerate()
                         .map(|(id, player)| {
-                            html! { 
-                                <Player 
+                            html! {
+                                <Player
                                     {id}
                                     name={player.name.clone()}
                                     champs={player.champs.clone()}
@@ -184,16 +204,16 @@ impl Component for App {
                                         player_id: id,
                                         new_champ_list
                                     }) }
-                                /> 
+                                />
                             }
                         })
                         .collect::<Html>()
                 }
 
-                // Block button to add a player. 
-                <div class={"d-grid gap-2 my-2"}> 
-                    <button 
-                        type={"button"} 
+                // Block button to add a player.
+                <div class={"d-grid gap-2 my-2"}>
+                    <button
+                        type={"button"}
                         class={"btn btn-success"}
                         disabled={self.players.len() == 5}
 
@@ -208,7 +228,7 @@ impl Component for App {
                     </button>
                 </div>
 
-                // Table component to be rendered here. 
+                // Table component to be rendered here.
                 <ResultsTable players={self.players.clone()} skinsets_excluded={self.skinsets_excluded.clone()} />
             </div>
         }

@@ -1,32 +1,32 @@
 //! Component definition for the player's name field.
 
+use uuid::Uuid;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use uuid::Uuid;
 
 #[derive(Properties, PartialEq)]
 pub struct NameProps {
-    /// The index of this player in the list of players. 
+    /// The index of this player in the list of players.
     pub player_id: usize,
     /// The default player name.
     pub player_name: AttrValue,
-    /// The callback to emit when the name is changed. 
-    pub onchange: Callback<String>
+    /// The callback to emit when the name is changed.
+    pub onchange: Callback<String>,
 }
 
-/// A component for rendering the player name field of each player in the skinset finder. 
+/// A component for rendering the player name field of each player in the skinset finder.
 #[function_component(Name)]
 pub fn name_field(props: &NameProps) -> Html {
-    // Use the input node's ref to get the value of the text box whenever it's changed. 
+    // Use the input node's ref to get the value of the text box whenever it's changed.
     let input_node_ref = use_node_ref();
-    // Use uuid to make an ID that connects the two fields of the form and is reasonably expected to be globally unique. 
+    // Use uuid to make an ID that connects the two fields of the form and is reasonably expected to be globally unique.
     let id: AttrValue = Uuid::new_v4().to_string().into();
 
     // Make a callback to handle events.
     let on_name_input = {
         // Clone the input node ref
         let input_node_ref = input_node_ref.clone();
-        // Clone the callback prop to invoke. 
+        // Clone the callback prop to invoke.
         let pass_to = props.onchange.clone();
 
         // Make a callback that handles input events.
@@ -38,14 +38,14 @@ pub fn name_field(props: &NameProps) -> Html {
     };
 
     html! {
-        <div class={"form-floating"}> 
-            <input 
-                ref={input_node_ref} 
+        <div class={"form-floating"}>
+            <input
+                ref={input_node_ref}
                 id={id.clone()}
-                type={"text"} 
-                class={"form-control"} 
-                placeholder={"First Last"} 
-                oninput={on_name_input} 
+                type={"text"}
+                class={"form-control"}
+                placeholder={"First Last"}
+                oninput={on_name_input}
                 value={props.player_name.clone()}
             />
 

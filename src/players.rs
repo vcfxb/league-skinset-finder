@@ -1,44 +1,32 @@
-
-/// Const-definable player struct used to define the list of champs someone is willing to play. 
+/// Const-definable player struct used to define the list of champs someone is willing to play.
 #[derive(Copy, Clone, Debug)]
 pub struct Player {
     /// Name of the player
     pub name: &'static str,
-    /// List of champs that player would be willing to play. 
+    /// List of champs that player would be willing to play.
     pub champs: &'static [&'static str],
 }
 
-// Taken from other file getting removed. 
-// /// Used to manually add lanes to champions that are not otherwise considered kosher. 
+// Taken from other file getting removed.
+// /// Used to manually add lanes to champions that are not otherwise considered kosher.
 // const MANUAL_LANE_OVERRIDES: &'static [(&'static str, Lane)] = &[
 //     ("Caitlyn", Lane::Top),
 //     ("Cho'Gath", Lane::Support),
 // ];
-
 
 /// List of people playing
 pub const PLAYERS: &'static [Player] = &[TONI, VENUS, EMMA];
 
 const MADDIE: Player = Player {
     name: "Maddie",
-    champs: &[
-        "Caitlyn",
-        "Jinx",
-        "Ahri",
-        "Ashe"
-    ]
+    champs: &["Caitlyn", "Jinx", "Ahri", "Ashe"],
 };
 
 const TONI: Player = Player {
     name: "Toni",
     champs: &[
-        "Vel'Koz",
-        "Evelynn",
-        "Cho'Gath",
-        "Briar",
-        "Morgana",
-        "Kindred"
-    ]
+        "Vel'Koz", "Evelynn", "Cho'Gath", "Briar", "Morgana", "Kindred",
+    ],
 };
 
 const VENUS: Player = Player {
@@ -55,7 +43,7 @@ const VENUS: Player = Player {
         "Nasus",
         "Garen",
         "Karthus",
-        "Hecarim"
+        "Hecarim",
     ],
 };
 
@@ -97,6 +85,6 @@ const EMMA: Player = Player {
         "Aphelios",
         "Trundle",
         "Aatrox",
-        "Rakan"
+        "Rakan",
     ],
 };
