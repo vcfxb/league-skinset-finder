@@ -1,19 +1,11 @@
 //! Champ Skinset table calculations.
 
 use crate::generated::{ALL_SKINSET_NAMES, CHAMPS_TO_SKINSETS};
-use crate::lanes::Lane;
+
 use implicit_clone::unsync::IString;
 use std::collections::{HashMap, HashSet};
 
-/// Skinsets we're not playing for various reasons.
-const SKINSET_BLACKLIST: &'static [&'static str] = &[
-    // Blacklisted for being aesthetically incoherent
-    "Legacy",
-    // Blacklisted for being ugly.
-    "Battlecast",
-    // Many ugly skins
-    "Infernal",
-];
+
 
 thread_local! {
     /// Global static skinsets map.
@@ -42,15 +34,15 @@ impl Skinsets {
             set_of_all_skinsets.insert(IString::Static(*skinset));
         }
 
-        for (champ_name, skinsets_list) in CHAMPS_TO_SKINSETS {
-            // Collect skinsets to hash set
-            let skinsets_set = skinsets_list
-                .iter()
-                .map(|skinset| IString::Static(*skinset))
-                .collect::<HashSet<_>>();
+        // for (champ_name, skinsets_list) in CHAMPS_TO_SKINSETS {
+        //     // Collect skinsets to hash set
+        //     let skinsets_set = skinsets_list
+        //         .iter()
+        //         .map(|skinset| IString::Static(*skinset))
+        //         .collect::<HashSet<_>>();
 
-            champ_to_skinset_map.insert(IString::Static(*champ_name), skinsets_set);
-        }
+        //     champ_to_skinset_map.insert(IString::Static(*champ_name), skinsets_set);
+        // }
 
         Self {
             champ_to_skinset_map,

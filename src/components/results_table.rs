@@ -1,6 +1,6 @@
 //! The results table component, used to render the skinsets resolved for the selected champs.
 
-use super::PlayerRecord;
+use super::app::PlayerRecord;
 use crate::{
     lanes::Lane,
     skinsets::{Skinsets, GLOBAL_SKINSETS_MAP},

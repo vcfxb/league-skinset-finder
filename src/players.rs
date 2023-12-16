@@ -7,6 +7,16 @@ pub struct Player {
     pub champs: &'static [&'static str],
 }
 
+/// Skinsets we're not playing for various reasons.
+const SKINSET_BLACKLIST: &'static [&'static str] = &[
+    // Blacklisted for being aesthetically incoherent
+    "Legacy",
+    // Blacklisted for being ugly.
+    "Battlecast",
+    // Many ugly skins
+    "Infernal",
+];
+
 // Taken from other file getting removed.
 // /// Used to manually add lanes to champions that are not otherwise considered kosher.
 // const MANUAL_LANE_OVERRIDES: &'static [(&'static str, Lane)] = &[

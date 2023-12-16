@@ -45,6 +45,7 @@ serde = { version = "1.0.189", features = ["derive", "rc"] }
 
 # Need to specify feature for getrandom to make it work on wasm targets. 
 getrandom = { version = "0.2", features = ["js"] }
+const-str = "0.5.6"
 
 # For build script to timestamp every build. 
 [build-dependencies]

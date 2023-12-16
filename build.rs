@@ -74,9 +74,14 @@ fn main() -> anyhow::Result<()> {
         )
     )?;
 
-    // Parse the lane data and add to the generated file.
-    let lane_data = parse_lanes_file()
-        // Iterate over the parsed output.
+    
+    // Parse the lane data, sort it, and add to the generated file.
+    let mut lane_data = parse_lanes_file();
+    // Sort the lane data by champ name. 
+    lane_data.sort_by_key(|(champ_name, _)| champ_name.clone());
+    
+    // Convert to a const-string. 
+    let lane_data_const_string = lane_data
         .into_iter()
         // Convert to a const-evaluable string of rust code.
         .map(|(champ_name, lanes)| {
@@ -91,14 +96,28 @@ fn main() -> anyhow::Result<()> {
         .join(",\n\t");
 
     // Write lane data
-    writeln!(&mut writer, "\t{lane_data}\n];")?;
+    writeln!(&mut writer, "\t{lane_data_const_string}\n];")?;
+
     // Parse skinset data.
     let (champs_to_skinsets, all_skinsets) = parse_skinsets_file();
-
+    // Make a sorted list of all the skinset names. 
+    let mut skinsets_sorted: Vec<String> = all_skinsets.into_iter().collect();
+    skinsets_sorted.sort();
+    
+    // Format the skinset list. 
+    let all_skinset_data = skinsets_sorted
+        .iter()
+        // Map skinsets into raw string literals.
+        .map(|skinset| format!("r##\"{skinset}\"##"))
+        // Collect to vec and join into string of lines.
+        .collect::<Vec<String>>()
+        // Join by comma and indent.
+        .join(",\n\t");
+    
     // Add all skinset data to file.
     writeln!(
         &mut writer,
-        "{}",
+        "{}\t{all_skinset_data}\n];",
         unindent::unindent(
             r#"
         /// List of all skinsets parsed from skinset HTML table at compile time. 
@@ -106,48 +125,41 @@ fn main() -> anyhow::Result<()> {
     "#
         )
     )?;
+    
+    // Convert the champ->skinset map to a list of all the groups of skinsets for each champ (a list of lists of indices
+    // into the skinset list). 
+    let mut sorted_champs_skinsets_map: Vec<(String, HashSet<String>)> = champs_to_skinsets.into_iter().collect();
+    // Sort by champ name. 
+    sorted_champs_skinsets_map.sort_by_key(|(champ_name, _)| champ_name.clone());
 
-    let all_skinset_data = all_skinsets
+    // Iterate over this sorted list stripping out the champ name and replacing the list of skinsets with a list of indices.
+    let skinset_index_table: Vec<Vec<usize>> = sorted_champs_skinsets_map
         .into_iter()
-        // Map skinsets into raw string literals.
-        .map(|skinset| format!("r##\"{skinset}\"##"))
-        // Collect to vec and join into string of lines.
-        .collect::<Vec<String>>()
-        // Join by comma and indent.
-        .join(",\n\t");
+        .map(|(_, skinsets)| {
+            skinsets.into_iter()
+                .map(|skinset| skinsets_sorted.binary_search(&skinset).unwrap())
+                .collect()
+        })
+        .collect();
 
-    // Close the skinset list.
-    writeln!(&mut writer, "\t{all_skinset_data}\n];")?;
+    // Format out the body of the skinset map data.
+    let skinset_map_data = skinset_index_table
+        .into_iter()
+        .map(|skinset_list| format!("&{skinset_list:?}"))
+        .collect::<Vec<String>>()
+        .join(",\n\t");
 
     // Finally write the skinset map.
     writeln!(
         &mut writer,
-        "{}",
+        "{}\t{skinset_map_data}\n];",
         unindent::unindent(
             r#"
         /// Map of all champ names to skinsets. 
-        pub const CHAMPS_TO_SKINSETS: &'static [(&'static str, &'static [&'static str])] = &[
+        pub const CHAMPS_TO_SKINSETS: &'static [&'static [usize]] = &[
     "#
         )
     )?;
-
-    // Format out the body of the skinset map data.
-    let skinset_map_data = champs_to_skinsets
-        .into_iter()
-        .map(|(champ_name, skinsets)| {
-            // Make the body of the skinset list string.
-            let skinsets_data = skinsets
-                .into_iter()
-                .map(|skinset_name| format!("r##\"{skinset_name}\"##"))
-                .collect::<Vec<String>>()
-                .join(", ");
-
-            format!("(r##\"{champ_name}\"##, &[{skinsets_data}])")
-        })
-        .collect::<Vec<String>>()
-        .join(",\n\t");
-
-    writeln!(&mut writer, "\t{skinset_map_data}\n];")?;
 
     // Flush any unwritten content.
     writer.flush()?;
@@ -221,9 +233,9 @@ fn parse_skinsets_file() -> (HashMap<String, HashSet<String>>, HashSet<String>) 
 /// Parse the lanes table file from html and return a map from champ name -> lanes.
 ///
 /// Adapted from original runtime version.
-fn parse_lanes_file() -> HashMap<String, Vec<&'static str>> {
+fn parse_lanes_file() -> Vec<(String, Vec<&'static str>)> {
     // Make map to populate.
-    let mut champ_to_lanes_map = HashMap::new();
+    let mut champ_to_lanes_map = Vec::new();
     // Load the table fragment into a scrapable document.
     let fragment: Html = Html::parse_fragment(LANES_HTML);
     // Make a selector to get rows out of the table.
@@ -270,7 +282,7 @@ fn parse_lanes_file() -> HashMap<String, Vec<&'static str>> {
 
         // Add the champ and their lanes to the map. We use insert rather than upsert here because we assume there
         // are no duplicates in the table.
-        champ_to_lanes_map.insert(champ_name, lanes);
+        champ_to_lanes_map.push((champ_name, lanes));
     }
 
     champ_to_lanes_map

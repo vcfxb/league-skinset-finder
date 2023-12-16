@@ -4,14 +4,15 @@ use std::rc::Rc;
 use uuid::Uuid;
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
+use crate::constants::ChampId;
 
 /// Properties passed to the champion dropdown component.
 #[derive(Properties, PartialEq)]
 pub struct ChampDropdownProps {
     /// The selected champ, if there is one.
-    pub selected_champ: Option<AttrValue>,
+    pub selected_champ: Option<ChampId>,
     /// Shared list of all other available champs to select from
-    pub other_available_champs: Rc<Vec<AttrValue>>,
+    pub other_available_champs: Rc<Vec<ChampId>>,
     /// Callback emitted when a new champ is selected.
     pub on_change: Callback<String>,
 }
