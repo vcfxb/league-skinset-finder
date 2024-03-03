@@ -19,7 +19,7 @@ impl ChampId {
     pub const MAX: Self = ChampId(LANE_DATA.len() -  1);
 
     /// Return an iterator over all the valid [ChampId]s. 
-    pub fn iter_all() -> impl Iterator<Item = Self> + ExactSizeIterator + DoubleEndedIterator + FusedIterator {
+    pub fn iter_all() -> impl DoubleEndedIterator<Item = Self> + ExactSizeIterator + FusedIterator {
         (0..LANE_DATA.len()).map(ChampId)
     }
 
@@ -36,7 +36,7 @@ impl ChampId {
     }
 
     /// Get an iterator over all the skinsets available for the champ referred to by this ID.
-    pub fn skinsets(self) -> impl Iterator<Item = SkinsetId> + ExactSizeIterator + DoubleEndedIterator + FusedIterator {
+    pub fn skinsets(self) -> impl DoubleEndedIterator<Item = SkinsetId> + ExactSizeIterator + FusedIterator {
         CHAMPS_TO_SKINSETS[self.0].iter().map(|index: &usize| SkinsetId(*index))
     }
 }
@@ -78,7 +78,7 @@ impl SkinsetId {
     }
 
     /// Get an iterator over all the valid [SkinsetId]s. 
-    pub fn iter_all() -> impl Iterator<Item = Self> + DoubleEndedIterator + FusedIterator + ExactSizeIterator {
+    pub fn iter_all() -> impl DoubleEndedIterator<Item = Self> + FusedIterator + ExactSizeIterator {
         (0..ALL_SKINSET_NAMES.len()).map(SkinsetId)
     }
 

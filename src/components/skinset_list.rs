@@ -4,7 +4,7 @@ use crate::{components::button::Button, constants::SkinsetId};
 use icondata::{BiHideRegular, BiShowRegular};
 use leptos::{
     component, create_effect, create_memo, create_node_ref, create_rw_signal, ev::Event,
-    event_target_checked, html::Input, view, CollectView, For, Fragment, IntoView, Memo, NodeRef,
+    event_target_checked, html::Input, view, CollectView, Fragment, IntoView, Memo, NodeRef,
     RwSignal, Show, Signal, SignalGet, SignalSet, SignalUpdate, View,
 };
 use leptos_icons::Icon;

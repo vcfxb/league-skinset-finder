@@ -12,17 +12,17 @@ use std::{
 
 /// Include the wiki sets table from https://leagueoflegends.fandom.com/wiki/Champion_skin/Skin_themes.
 #[allow(unused)]
-const WIKI_SETS_TABLE: &'static str = include_str!("assets/wiki-sets-table.html");
+const WIKI_SETS_TABLE: &str = include_str!("assets/wiki-sets-table.html");
 
 /// Include the official sets table from https://leagueoflegends.fandom.com/wiki/Champion_skin/Skin_themes.
 #[allow(unused)]
-const OFFICIAL_SETS_TABLE: &'static str = include_str!("assets/official-sets-table.html");
+const OFFICIAL_SETS_TABLE: &str = include_str!("assets/official-sets-table.html");
 
 /// Select which table to use.
-const SKINSETS_HTML: &'static str = WIKI_SETS_TABLE;
+const SKINSETS_HTML: &str = WIKI_SETS_TABLE;
 
 /// Lane table from https://leagueoflegends.fandom.com/wiki/List_of_champions_by_draft_position.
-const LANES_HTML: &'static str = include_str!("assets/champ-lanes-table.html");
+const LANES_HTML: &str = include_str!("assets/champ-lanes-table.html");
 
 /// This build script generates a file that stores build data for reference in the web interface.
 fn main() -> anyhow::Result<()> {
@@ -34,7 +34,7 @@ fn main() -> anyhow::Result<()> {
     // Put all generated code in `generated.rs`.
     let dest_path = Path::new(&out_dir).join("generated.rs");
     // Create the output file.
-    let out_file = File::create(&dest_path)?;
+    let out_file = File::create(dest_path)?;
     // Create a buffered writer around the output file.
     let mut writer = BufWriter::new(out_file);
     // Write the necessary includes and structs to the output file.
@@ -69,7 +69,7 @@ fn main() -> anyhow::Result<()> {
         unindent::unindent(
             r#"
         /// Lane data parsed at compile time from the downloaded lane table HTML. 
-        pub const LANE_DATA: &'static [(&'static str, BitFlags<Lane>)] = &[
+        pub const LANE_DATA: &[(&str, BitFlags<Lane>)] = &[
     "#
         )
     )?;
@@ -121,7 +121,7 @@ fn main() -> anyhow::Result<()> {
         unindent::unindent(
             r#"
         /// List of all skinsets parsed from skinset HTML table at compile time. 
-        pub const ALL_SKINSET_NAMES: &'static [&'static str] = &[
+        pub const ALL_SKINSET_NAMES: &[&str] = &[
     "#
         )
     )?;
@@ -156,7 +156,7 @@ fn main() -> anyhow::Result<()> {
         unindent::unindent(
             r#"
         /// Map of all champ names to skinsets. 
-        pub const CHAMPS_TO_SKINSETS: &'static [&'static [usize]] = &[
+        pub const CHAMPS_TO_SKINSETS: &[&[usize]] = &[
     "#
         )
     )?;
