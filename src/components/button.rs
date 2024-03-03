@@ -9,9 +9,6 @@ use leptos::{component, view, Callable, Callback, Children, IntoView, MaybeSigna
 /// - `class` - The HTML class(es) used to style this button.
 /// - `on_click` - The callback that is triggered when the button is pressed. 
 /// - `children` - The children of this component that are rendered inside of it. 
-/// 
-/// # WARNING
-/// The reactivity of this component is likely buggy -- steal from the skinset selector when you get a chance. 
 #[component]
 pub fn Button(
     #[prop(into, optional)]

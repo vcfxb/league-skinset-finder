@@ -2,7 +2,7 @@
 
 pub mod app;
 mod button;
-mod checkbox;
+// mod checkbox;
 mod link;
 // mod player;
 // // mod results_table;

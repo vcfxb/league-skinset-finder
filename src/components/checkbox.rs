@@ -6,6 +6,8 @@ use leptos::{component, view, Callback, IntoView, MaybeSignal, Callable};
 /// 
 /// # Arguments
 /// - `on_change` - [Callback] to
+/// # WARNING
+/// The reactivity of this component is likely buggy -- steal from the skinset selector when you get a chance. 
 #[component]
 pub fn Checkbox(
     #[prop(into)]
