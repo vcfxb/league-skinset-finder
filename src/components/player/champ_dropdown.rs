@@ -12,9 +12,9 @@ pub struct ChampDropdownProps {
     /// The selected champ, if there is one.
     pub selected_champ: Option<ChampId>,
     /// Shared list of all other available champs to select from
-    pub other_available_champs: Rc<Vec<ChampId>>,
+    pub other_available_champs: Rc<[ChampId]>,
     /// Callback emitted when a new champ is selected.
-    pub on_change: Callback<String>,
+    pub on_change: Callback<ChampId>,
 }
 
 /// Dropdown component to choose a champ from.
@@ -38,8 +38,8 @@ impl Component for ChampDropdown {
     // Custom `changed` implementation needed to deal with stupid select/auto-fill issue on firefox.
     fn changed(&mut self, ctx: &Context<Self>, _: &Self::Properties) -> bool {
         if let Some(select) = self.select_ref.cast::<HtmlSelectElement>() {
-            if let Some(selected_champ) = ctx.props().selected_champ.as_ref() {
-                select.set_value(&selected_champ);
+            if let Some(selected_champ) = ctx.props().selected_champ {
+                select.set_value(selected_champ.champ_name());
             } else {
                 select.set_value("Select a champion...");
             }

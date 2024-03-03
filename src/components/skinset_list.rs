@@ -1,177 +1,135 @@
 //! Component/card listing all the skinsets to be played.
 
 use crate::{components::button::Button, constants::SkinsetId};
-use uuid::Uuid;
-use yew::{prelude::*, html::Scope};
-use yew_icons::{Icon, IconId};
-use super::{App, app::AppMsg};
+use icondata::{BiHideRegular, BiShowRegular};
+use leptos::{
+    component, create_effect, create_memo, create_node_ref, create_rw_signal, ev::Event,
+    event_target_checked, html::Input, view, CollectView, For, Fragment, IntoView, Memo, NodeRef,
+    RwSignal, Show, Signal, SignalGet, SignalSet, SignalUpdate, View,
+};
+use leptos_icons::Icon;
+use std::collections::HashSet;
 
-/// Component storing a the exclusion/inclusion state of all the skinsets.
-pub struct SkinsetList {
-    /// Is the body collapsed/hidden?
-    collapsed: bool,
-}
+/// An interactive card that displays all the skinsets available with information on which ones are selected.
+///
+/// # Arguments
+/// - `skinsets_rw_signal` - A read/write signal to the current [`HashSet`] of skinsets selected.
+#[component]
+pub fn SkinsetList(skinsets_rw_signal: RwSignal<HashSet<SkinsetId>>) -> impl IntoView {
+    // Create a signal to track the state of whether the card is collapsed.
+    let collapsed: RwSignal<bool> = create_rw_signal(false);
 
-impl SkinsetList {
-    /// Get the parent app component from self. 
-    fn get_parent_app_scope(ctx: &Context<Self>) -> Scope<App> {
-        ctx.link()
-            .get_parent()
-            .expect("parent component exists")
-            .downcast()
-    }
-
-    // fn get_parent_app(ctx: &Context<Self>) -> impl Deref<Target = App> {
-    //     SkinsetList::get_parent_app_scope(ctx)
-    //         .get_component()
-    //         .expect("got parent App component")
-    // }
-}
-
-/// Messages passed to the SkinsetList component.
-pub enum Msg {
-    /// Toggle whether the body is visible or hidden.
-    ToggleViewHide,
-
-    /// Mark all skinsets as selected.
-    SelectAllSkinsets,
-
-    /// Mark all skinsets as excluded.
-    ExcludeAllSkinsets,
-
-    /// Toggle the exclusion of a specific skinset.
-    ToggleSkinset { skinset_id: SkinsetId },
-}
-
-impl Component for SkinsetList {
-    type Message = Msg;
-
-    type Properties = ();
-
-    fn create(_: &Context<Self>) -> Self {
-        SkinsetList { collapsed: false }
-    }
-
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::ToggleViewHide => {
-                self.collapsed = !self.collapsed;
-                // Re-render
-                true
-            }
-
-            Msg::ExcludeAllSkinsets => {
-                // Bubble message to parent app component. 
-                SkinsetList::get_parent_app_scope(ctx).send_message(AppMsg::ExcludeAllSkinsets);
-                // This must be re-render after sending the message to the parent (as there is no new props).
-                true
-            }
-
-            Msg::SelectAllSkinsets => {
-                // Bubble up the message to the parent. 
-                SkinsetList::get_parent_app_scope(ctx).send_message(AppMsg::IncludeAllSkinsets);
-                // This must be re-render after sending the message to the parent (as there is no new props).
-                true
-            }
-
-            Msg::ToggleSkinset { skinset_id } => {
-                // Bubble message to parent.
-                SkinsetList::get_parent_app_scope(ctx).send_message(AppMsg::ToggleSkinset { skinset_id });
-                // Do not re-render this component separately.
-                false
-            }
+    // Derive a signal to track the icon to use for the show/hide button.
+    let show_hide_body: Signal<Fragment> = Signal::derive(move || {
+        if collapsed.get() {
+            view! { "Show " <Icon icon=BiShowRegular /> }
+        } else {
+            view! { "Hide " <Icon icon=BiHideRegular /> }
         }
-    }
+    });
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        // Resolve the Icon to use for the show/hide button.
-        let collapse_button_icon: IconId = self
-            .collapsed
-            .then_some(IconId::HeroiconsOutlineEyeSlash)
-            .unwrap_or(IconId::HeroiconsOutlineEye);
+    // Closure to exclude all skinsets.
+    let exclude_all_skinsets = move |_| {
+        log::debug!("Excluding all skinsets");
+        skinsets_rw_signal.update(|hash_set: &mut HashSet<SkinsetId>| hash_set.clear())
+    };
 
-        // Make a node id for the collapsing div.
-        let collapse_id: AttrValue = Uuid::new_v4().to_string().into();
+    // Closure to include all skinsets.
+    let include_all_skinsets = move |_| {
+        log::debug!("Including all skinsets");
+        skinsets_rw_signal.set(SkinsetId::iter_all().collect())
+    };
 
-        html! {
-            <div class="card bg-light text-dark my-2">
-                <div class="card-body">
-                    <span class="card-title d-inline-flex w-100">
-                        <h3 class="p2 flex-grow-1">
-                            {"Selected Skinsets"}
-                        </h3>
+    // Create a derived that will produce the rendered list of skinsets with checkboxes.
+    let skinset_checkboxes: Memo<View> = create_memo(move |_| {
+        // For each skinset that exists, determine a good shortened name and render a view.
+        SkinsetId::iter_all()
+            .map(|skinset_id: SkinsetId| {
+                // Make a transformed skinset name to handle long skinset names.
+                let transformed_skinset_name = if skinset_id.skinset_name().len() > 22 {
+                    format!("{}...", &skinset_id.skinset_name()[0..21])
+                } else {
+                    skinset_id.skinset_name().to_string()
+                };
 
-                        // De-select all skinsets
-                        <Button class={"btn btn-primary mx-1"} enable={!self.collapsed} on_click={ ctx.link().callback(|_| Msg::ExcludeAllSkinsets) }>
-                            {"De-select All Skinsets"}
-                        </Button>
+                // Make an ID for the checkbox.
+                let checkbox_id: String = format!("skinset-{}-check", skinset_id.inner());
 
-                        // Select all button
-                        <Button class={"btn btn-primary mx-1"} enable={!self.collapsed} on_click={ ctx.link().callback(|_| Msg::SelectAllSkinsets) }>
-                            {"Select All Skinsets"}
-                        </Button>
+                // Make a checkbox node ref so that we can manually debounce checkbox events since stuff seems broken.
+                let node_ref: NodeRef<Input> = create_node_ref::<Input>();
 
-                        // Show/hide button
-                        <Button class={"btn btn-secondary mx-1"} enable={true} on_click={ ctx.link().callback(|_| Msg::ToggleViewHide) }>
-                            {"Show/Hide "} <Icon icon_id={collapse_button_icon} />
-                        </Button>
-                    </span>
-                </div>
+                // Make a function to handle the checkbox.
+                let on_change = move |ev: Event| {
+                    if event_target_checked(&ev) {
+                        skinsets_rw_signal.update(|hash_set: &mut HashSet<SkinsetId>| {
+                            hash_set.insert(skinset_id);
+                        });
+                    } else {
+                        skinsets_rw_signal.update(|hash_set: &mut HashSet<SkinsetId>| {
+                            hash_set.remove(&skinset_id);
+                        });
+                    }
+                };
 
-                // Collapsable body.
-                if !self.collapsed {
-                    <div class="card-body row row-cols-6" id={collapse_id.clone()}>
-                        {{
-                            // Get the parent app scope. 
-                            let parent_app_scope = SkinsetList::get_parent_app_scope(ctx);
-                            // Get the parent app itself (as a ref). 
-                            let parent_app = parent_app_scope
-                                .get_component()
-                                .expect("got parent App Component");
+                // Use an effect to update the state of the checkbox in the browser when it's clicked.
+                // This is necessary to prevent checkboxes from misbehaving.
+                create_effect(move |_| {
+                    node_ref
+                        .get_untracked()
+                        .unwrap()
+                        .set_checked(skinsets_rw_signal.get().contains(&skinset_id))
+                });
 
-                            // Get a reference to the list of excluded skinsets from the parent component. 
-                            let excluded_skinsets: &[SkinsetId] = parent_app.skinsets_excluded.as_slice();
-
-                            // Get an iterator over all skinset ids in alphabetical order by name. 
-                            let all_skinsets = SkinsetId::iter_all();
-
-                            // Iterate and generate html checkboxes and labels
-                            all_skinsets
-                                .map(|skinset_id: SkinsetId| {
-                                    // Determine wether this skinset is checked.
-                                    let checked = !excluded_skinsets.contains(&skinset_id);
-                                    // Make an ID for the checkbox.
-                                    let checkbox_id: AttrValue = Uuid::new_v4().to_string().into();
-                                    // Make the on-change callback.
-                                    let onchange = ctx.link().callback(move |_| Msg::ToggleSkinset { skinset_id });
-
-                                    // Make a transformed skinset name to handle long skinset names.
-                                    let transformed_skinset_name = if skinset_id.skinset_name().len() > 22 {
-                                        format!("{}...", &skinset_id.skinset_name()[0..21])
-                                    } else {
-                                        skinset_id.skinset_name().to_string()
-                                    };
-
-                                    html! {
-                                        <div class={"col form-check"}>
-                                            <input
-                                                class="form-check-input"
-                                                type="checkbox"
-                                                id={checkbox_id.clone()}
-                                                {onchange}
-                                                {checked}
-                                            />
-                                            <label class="form-check-label" for={checkbox_id}>
-                                                {transformed_skinset_name}
-                                            </label>
-                                        </div>
-                                    }
-                                })
-                                .collect::<Html>()
-                        }}
+                view! {
+                    <div class="col form-check">
+                        <input
+                            _ref=node_ref
+                            class="form-check-input"
+                            type="checkbox"
+                            id={checkbox_id.clone()}
+                            on:change=on_change
+                            checked={move || skinsets_rw_signal.get().contains(&skinset_id)}
+                        />
+                        <label class="form-check-label" for={checkbox_id}>
+                            {transformed_skinset_name}
+                        </label>
                     </div>
                 }
+            })
+            .collect_view()
+    });
+
+    view! {
+        <div class="card bg-light text-dark my-2">
+            <div class="card-body">
+                <span class="card-title d-inline-flex w-100">
+                    <h3 class="p2 flex-grow-1">
+                        "Selected Skinsets"
+                    </h3>
+
+                    // De-select all skinsets
+                    <Button class="btn btn-primary mx-1" disabled={collapsed} on_click=exclude_all_skinsets>
+                        "De-select All Skinsets"
+                    </Button>
+
+                    // Select all button
+                    <Button class="btn btn-primary mx-1" disabled={collapsed} on_click=include_all_skinsets>
+                        "Select All Skinsets"
+                    </Button>
+
+                    // Show/hide button
+                    <Button class="btn btn-secondary mx-1" on_click={ move |_| collapsed.update(|c| *c = !*c) }>
+                        {show_hide_body}
+                    </Button>
+                </span>
             </div>
-        }
+
+            // Show/hide functionality -- show nothing when collapsed.
+            <Show when={move || !collapsed.get()} fallback={move || view! {} }>
+                <div class="card-body row row-cols-6">
+                    {skinset_checkboxes}
+                </div>
+            </Show>
+        </div>
     }
 }

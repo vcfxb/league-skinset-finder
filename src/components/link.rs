@@ -1,37 +1,33 @@
-/// Link components in the league skinset finder.
-use yew::prelude::*;
-use yew_icons::{Icon, IconId};
+//! Link component for the league skinset finder. 
+use leptos::{component, view, IntoView};
+use leptos_icons::Icon;
+use icondata::TbExternalLink;
 
-/// Properties passed to link components.
-#[derive(Properties, PartialEq)]
-pub struct LinkProps {
-    /// Open this link in a new tab?
-    #[prop_or_default]
-    pub open_in_new_tab: bool,
-    /// The address being linked to.
-    pub href: AttrValue,
-    /// The text of the link (default to the address if none).
-    #[prop_or_default]
-    pub text: Option<AttrValue>,
-}
+/// Component that renders a link. 
+/// 
+/// # Arguments 
+/// - `open_in_new_tab` - Should this link open in a new tab? (default: false)
+/// - `href` - The URL to bring the user to when they click this link. 
+/// - `text` - The text shown to the user. When [`None`], use the content of `href`. 
+#[component]
+pub fn Link(
+    #[prop(optional)]
+    open_in_new_tab: bool,
+    #[prop(into)]
+    href: String,
+    #[prop(optional)]
+    text: Option<String>
+) -> impl IntoView {
+    // Resolve the text to display to the user. 
+    let link_text: &String = text.as_ref().unwrap_or(&href);
 
-/// Link component used for adding links to the league skinset finder.
-#[function_component(Link)]
-pub fn link(props: &LinkProps) -> Html {
-    // Resolve the link text.
-    let link_text = props.text.as_ref().unwrap_or(&props.href);
-
-    if props.open_in_new_tab {
-        html! {
-            <a href={&props.href} target="_blank" rel={"noreferrer noopener"}>
-                {link_text}
-                {" "}
-                <Icon icon_id={IconId::LucideExternalLink} />
+    if open_in_new_tab {
+        view! {
+            <a href={&href} target="_blank" rel="noreferrer noopener"> 
+                {link_text} " " <Icon icon=TbExternalLink />
             </a>
         }
     } else {
-        html! {
-            <a href={&props.href}> {link_text} </a>
-        }
+        view! { <a href={&href}> {link_text} </a> }
     }
 }

@@ -1,40 +1,33 @@
 //! Clickable button component.
 
-use yew::prelude::*;
+use leptos::{component, view, Callable, Callback, Children, IntoView, MaybeSignal};
 
-/// Properties passed to the button when rendering.
-#[derive(Properties, PartialEq)]
-pub struct ButtonProps {
-    /// Is this button currently enabled/clickable?
-    pub enable: bool,
-    /// Callback that gets emitted when the button is clicked.
-    pub on_click: Callback<()>,
-    /// The html classes used to style this button.
-    pub class: AttrValue,
-    /// The button content (passed as children of this component).
-    pub children: Html,
-}
+/// A clickable button component. 
+/// 
+/// # Arguments
+/// - `disabled` - Is this button disabled/unclickable? (default: false). This can be a signal. 
+/// - `class` - The HTML class(es) used to style this button.
+/// - `on_click` - The callback that is triggered when the button is pressed. 
+/// - `children` - The children of this component that are rendered inside of it. 
+/// 
+/// # WARNING
+/// The reactivity of this component is likely buggy -- steal from the skinset selector when you get a chance. 
+#[component]
+pub fn Button(
+    #[prop(into, optional)]
+    disabled: MaybeSignal<bool>,
+    #[prop(into)]
+    class: String,
+    #[prop(into)]
+    on_click: Callback<()>,
+    children: Children
+) -> impl IntoView {
+    // We have to make a closure on stable for some reason. Use it as an opportunity to ignore the mouse event.
+    let on_click_closure = move |_| { on_click.call(()) };
 
-/// A button with arbitrary styling and content.
-#[function_component(Button)]
-pub fn button(props: &ButtonProps) -> Html {
-    // Make the closure to recieve button clicks.
-    let click_handler = {
-        // Clone the callback to trigger.
-        let callback = props.on_click.clone();
-        // Make another callback that takes and ignores an event.
-        Callback::from(move |_| callback.emit(()))
-    };
-
-    html! {
-        <button
-            type={"button"}
-            class={ props.class.clone() }
-            // Conditionally drop the handler for a no-op when disabled.
-            onclick={ if props.enable {Some(click_handler)} else { None } }
-            disabled={!props.enable}
-        >
-            { props.children.clone() }
+    view! {
+        <button type="button" class=class disabled=disabled on:click=on_click_closure>
+            {children()}
         </button>
     }
 }

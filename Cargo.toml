@@ -12,24 +12,6 @@ derive_more = "0.99.17"
 # Used to turn the Lane enum into bitflags
 enumflags2 = { version = "0.7.8", features = ["std", "serde"] }
 
-# Web frontend framework
-yew = { version = "0.21.0", features = ["csr"] }
-
-# Some utilities for dealing with web frontend stuff.
-web-sys = { version = "0.3.64", features = ["HtmlSelectElement"] }
-
-# Force serde support for some yew types re-exported from implicit-clone
-implicit-clone = { version = "^0.4.1", features = ["serde"] }
-
-# Icon pack to use with Yew -- Icons have to be included by feature name. 
-yew_icons = { version = "0.8.0", features = [
-    "LucideExternalLink", 
-    "BootstrapTrash", 
-    "BootstrapPersonAdd", 
-    "HeroiconsOutlineEye",
-    "HeroiconsOutlineEyeSlash"
-] }
-
 # Use over std::time::Instant due to compatability issues with wasm
 instant = { version = "0.1.12", features = ["wasm-bindgen"] }
 
@@ -45,7 +27,19 @@ serde = { version = "1.0.189", features = ["derive", "rc"] }
 
 # Need to specify feature for getrandom to make it work on wasm targets. 
 getrandom = { version = "0.2", features = ["js"] }
+
+# Constant time string operations
 const-str = "0.5.6"
+
+# WASM SPA framework with CSR
+leptos = { version = "0.6.7", features = ["csr"] }
+
+# Redirect panics to the JS console in browsers. 
+console_error_panic_hook = "0.1.7"
+
+# Icons for leptos.
+leptos_icons = "0.3.0"
+icondata = "0.3.0"
 
 # For build script to timestamp every build. 
 [build-dependencies]

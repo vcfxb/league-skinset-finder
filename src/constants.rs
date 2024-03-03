@@ -1,7 +1,7 @@
 //! Staticly available information and information generated using the build script that scrapes the downloaded html 
 //! tables.
 
-use std::iter::FusedIterator;
+use std::{collections::HashSet, iter::FusedIterator};
 use enumflags2::BitFlags;
 use serde::{Serialize, Deserialize};
 use super::generated::{LANE_DATA, ALL_SKINSET_NAMES, CHAMPS_TO_SKINSETS};
@@ -16,7 +16,7 @@ pub struct ChampId(usize);
 
 impl ChampId {
     /// The highest valid champion ID.
-    pub const MAX: Self = ChampId(LANE_DATA.len()-1);
+    pub const MAX: Self = ChampId(LANE_DATA.len() -  1);
 
     /// Return an iterator over all the valid [ChampId]s. 
     pub fn iter_all() -> impl Iterator<Item = Self> + ExactSizeIterator + DoubleEndedIterator + FusedIterator {
@@ -49,7 +49,7 @@ pub struct SkinsetId(usize);
 
 impl SkinsetId {
     /// The highest valid [SkinsetId].
-    pub const MAX: Self = SkinsetId(ALL_SKINSET_NAMES.len()-1);
+    pub const MAX: Self = SkinsetId(ALL_SKINSET_NAMES.len() - 1);
 
     /// The "Legacy" skinset, which should be excluded by default. 
     const LEGACY: Self = Self::id_of_skinset("Legacy");
@@ -86,5 +86,17 @@ impl SkinsetId {
     #[inline]
     pub const fn skinset_name(self) -> &'static str {
         ALL_SKINSET_NAMES[self.0]
+    }
+
+    /// Generate the default set of all included skinsets. 
+    pub fn generate_default_included_skinsets() -> HashSet<SkinsetId> {
+        SkinsetId::iter_all()
+            .filter(|skinset_id| !SkinsetId::DEFAULT_EXCLUDED_SKINSETS.contains(skinset_id))
+            .collect()
+    }
+
+    /// Get the underlying [usize] for this [SkinsetId].
+    pub const fn inner(self) -> usize {
+        self.0
     }
 }

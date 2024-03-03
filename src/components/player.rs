@@ -1,39 +1,149 @@
 //! Player components in the league skinset finder.
 
-use super::button::Button;
-use crate::lanes::{Lane, LanesMap, GLOBAL_LANES_MAP};
-use champ::ChampSelection;
+use crate::constants::{ChampId, Lane};
+
+use super::{button::Button, App, app::{PlayerRecord, AppMsg}};
+// use champ::ChampSelection;
 use enumflags2::BitFlags;
 use name_field::Name;
 use std::rc::Rc;
-use yew::prelude::*;
+use yew::{prelude::*, html::Scope};
 use yew_icons::{Icon, IconId};
 
-mod champ;
+// mod champ;
 mod champ_dropdown;
 mod lanes_select;
 mod name_field;
 
+
+/// Player component. 
+pub struct Player;
+
+impl Player {
+    /// Get the scope of the parent app component. 
+    fn get_parent_app_scope(ctx: &Context<Self>) -> Scope<App> {
+        ctx.link()
+            .get_parent()
+            .expect("found parent component")
+            .downcast()
+    }
+}
+
+pub enum PlayerMsg {
+    /// Change this players name. 
+    ChangeName {
+        new_name: String,
+    },
+
+    /// Remove this player. 
+    RemoveThisPlayer,
+
+}
+
+/// The properties passed to the player component. 
 #[derive(Properties, PartialEq, Debug)]
 pub struct PlayerProps {
     /// Player ID (index) used for connecting inputs and labels.
     pub id: usize,
-    /// The default name of this player.
-    pub name: Option<AttrValue>,
-    /// List of champs this player plays.
-    /// This should only be updated by the parent component.
-    pub champs: Rc<Vec<(AttrValue, BitFlags<Lane>)>>,
-    /// Callback to handle player name chane.
-    pub on_name_change: Callback<String>,
-    /// Whether the remove player button is enabled (there need to be more than 6 champs).
-    pub enable_remove: bool,
-    /// Callback called to rempove the player.
-    pub on_remove: Callback<()>,
-    /// Callback to be emitted when this component update's its player's champ list.
-    pub on_champ_list_update: Callback<Vec<(AttrValue, BitFlags<Lane>)>>,
 }
 
-#[function_component(Player)]
+impl Component for Player {
+    type Message = PlayerMsg;
+
+    type Properties = PlayerProps;
+
+    fn create(ctx: &Context<Self>) -> Self {
+        Player
+    }
+
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            // Player Name change 
+            PlayerMsg::ChangeName { new_name } => {
+                Player::get_parent_app_scope(ctx)
+                    .send_message(AppMsg::PlayerNameUpdate { index: ctx.props().id, new_name });
+
+                // Do not re-render with name that user just input.
+                false
+            }
+
+            // Player removal
+            PlayerMsg::RemoveThisPlayer => {
+                Player::get_parent_app_scope(ctx)
+                    .send_message(AppMsg::RemovePlayer { player_index: ctx.props().id });
+
+                // Do not re-render this player if it has been removed. 
+                false
+            }
+        }
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        // Get the parent app scope so we can list the available champs for this player. 
+        let parent_app_scope = Player::get_parent_app_scope(ctx);
+        // Get the component so that we can get the list of champs for this player. 
+        let parent_app = parent_app_scope.get_component().expect("got parent app");
+        // Get the player record for this player. 
+        let player_record: &PlayerRecord = &parent_app.players[ctx.props().id];
+        // Get the list (in order) of champions anmd their lanes selected by this player. 
+        let champ_selections: &[(ChampId, BitFlags<Lane>)] = player_record.champs.as_slice();
+        // Determine if this player is removable
+        let enable_remove: bool = parent_app.players.len() > 1;
+        // Resolve the name of this player.
+        let player_name: AttrValue = player_record.name.clone().unwrap_or_default();
+
+        html! {
+            <div class={"card mt-2 bg-light text-dark"}>
+                <div class={"card-body row g-2 align-items-center w-100"}>
+                    <div class={"col-10"}>
+                        // Name field and handling
+                        <Name player_id={ctx.props().id} player_name={player_name} onchange={ctx.link().callback(|new_name| PlayerMsg::ChangeName { new_name })} />
+                    </div>
+                    <div class={"col-2"}>
+                        // Remove player button.
+                        <Button enable={enable_remove} on_click={ctx.link().callback(|_| PlayerMsg::RemoveThisPlayer)} class={"btn btn-danger w-100 fs-5 py-2"} >
+                            <Icon icon_id={IconId::BootstrapTrash} /> {" Remove Player"}
+                        </Button>
+                    </div>
+                </div>
+
+                // Champ selectors.
+                // <ul class={"list-group list-group-flush"}>
+                //     {
+                //         champ_selections.iter().map(|(champ_id, lanes)| html!{
+                //             <li class={"list-group-item"}>
+                //                 <ChampSelection
+                //                     change_champ_callback={change_champ_callback.clone()}
+                //                     other_available_champs={other_available_champs.clone()}
+                //                     lane_change_callback={lane_change_callback.clone()}
+                //                     remove_champ_callback={remove_champ_callback.clone()}
+
+                //                     selected_champ={
+                //                         Some((champ_name.clone(), *lanes))
+                //                     }
+                //                 />
+                //             </li>
+                //         }).collect::<Html>()
+                //     }
+                //     <li class={"list-group-item"}>
+                //         <ChampSelection
+                //             selected_champ={None}
+                //             change_champ_callback={change_champ_callback.clone()}
+                //             other_available_champs={other_available_champs.clone()}
+                //             // Leave the lane-change callback and remove champ callback no-ops
+                //             // because there should not be any lanes or champ data
+                //             // on an empty champ selector.
+                //             lane_change_callback={Callback::noop()}
+                //             remove_champ_callback={Callback::noop()}
+                //         />
+                //     </li>
+                // </ul>
+            </div>
+        }
+    }
+}
+
+/*
 pub fn player(props: &PlayerProps) -> Html {
     // Get an Rc'd list of all the other available champs.
     let other_available_champs = GLOBAL_LANES_MAP.with(|lanes_map: &LanesMap| {
@@ -140,50 +250,6 @@ pub fn player(props: &PlayerProps) -> Html {
     };
 
     html! {
-        <div class={"card mt-2 bg-light text-dark"}>
-            <div class={"card-body row g-2 align-items-center w-100"}>
-                <div class={"col-10"}>
-                    // Name field and handling
-                    <Name player_id={props.id} player_name={props.name.clone().unwrap_or_default()} onchange={props.on_name_change.clone()} />
-                </div>
-                <div class={"col-2"}>
-                    // Remove player button.
-                    <Button enable={props.enable_remove} on_click={props.on_remove.clone()} class={"btn btn-danger w-100 fs-5 py-2"} >
-                        <Icon icon_id={IconId::BootstrapTrash} /> {" Remove Player"}
-                    </Button>
-                </div>
-            </div>
-            // Champ selectors.
-            <ul class={"list-group list-group-flush"}>
-                {
-                    props.champs.as_slice().iter().map(|(champ_name, lanes)| html!{
-                        <li class={"list-group-item"}>
-                            <ChampSelection
-                                change_champ_callback={change_champ_callback.clone()}
-                                other_available_champs={other_available_champs.clone()}
-                                lane_change_callback={lane_change_callback.clone()}
-                                remove_champ_callback={remove_champ_callback.clone()}
-
-                                selected_champ={
-                                    Some((champ_name.clone(), *lanes))
-                                }
-                            />
-                        </li>
-                    }).collect::<Html>()
-                }
-                <li class={"list-group-item"}>
-                    <ChampSelection
-                        selected_champ={None}
-                        change_champ_callback={change_champ_callback.clone()}
-                        other_available_champs={other_available_champs.clone()}
-                        // Leave the lane-change callback and remove champ callback no-ops
-                        // because there should not be any lanes or champ data
-                        // on an empty champ selector.
-                        lane_change_callback={Callback::noop()}
-                        remove_champ_callback={Callback::noop()}
-                    />
-                </li>
-            </ul>
-        </div>
-    }
+            }
 }
+*/

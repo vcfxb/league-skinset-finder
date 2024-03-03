@@ -1,7 +1,7 @@
 //! Lane selector component attached to champ selector.
 
 use crate::components::checkbox::Checkbox;
-use crate::lanes::Lane;
+use crate::constants::Lane;
 use enumflags2::BitFlags;
 use uuid::Uuid;
 use yew::prelude::*;
