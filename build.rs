@@ -74,13 +74,12 @@ fn main() -> anyhow::Result<()> {
         )
     )?;
 
-    
     // Parse the lane data, sort it, and add to the generated file.
     let mut lane_data = parse_lanes_file();
-    // Sort the lane data by champ name. 
+    // Sort the lane data by champ name.
     lane_data.sort_by_key(|(champ_name, _)| champ_name.clone());
-    
-    // Convert to a const-string. 
+
+    // Convert to a const-string.
     let lane_data_const_string = lane_data
         .into_iter()
         // Convert to a const-evaluable string of rust code.
@@ -100,11 +99,11 @@ fn main() -> anyhow::Result<()> {
 
     // Parse skinset data.
     let (champs_to_skinsets, all_skinsets) = parse_skinsets_file();
-    // Make a sorted list of all the skinset names. 
+    // Make a sorted list of all the skinset names.
     let mut skinsets_sorted: Vec<String> = all_skinsets.into_iter().collect();
     skinsets_sorted.sort();
-    
-    // Format the skinset list. 
+
+    // Format the skinset list.
     let all_skinset_data = skinsets_sorted
         .iter()
         // Map skinsets into raw string literals.
@@ -113,7 +112,7 @@ fn main() -> anyhow::Result<()> {
         .collect::<Vec<String>>()
         // Join by comma and indent.
         .join(",\n\t");
-    
+
     // Add all skinset data to file.
     writeln!(
         &mut writer,
@@ -125,18 +124,21 @@ fn main() -> anyhow::Result<()> {
     "#
         )
     )?;
-    
+
     // Convert the champ->skinset map to a list of all the groups of skinsets for each champ (a list of lists of indices
-    // into the skinset list). 
-    let mut sorted_champs_skinsets_map: Vec<(String, HashSet<String>)> = champs_to_skinsets.into_iter().collect();
-    // Sort by champ name. 
+    // into the skinset list).
+    let mut sorted_champs_skinsets_map: Vec<(String, HashSet<String>)> =
+        champs_to_skinsets.into_iter().collect();
+
+    // Sort by champ name.
     sorted_champs_skinsets_map.sort_by_key(|(champ_name, _)| champ_name.clone());
 
     // Iterate over this sorted list stripping out the champ name and replacing the list of skinsets with a list of indices.
     let skinset_index_table: Vec<Vec<usize>> = sorted_champs_skinsets_map
         .into_iter()
         .map(|(_, skinsets)| {
-            skinsets.into_iter()
+            skinsets
+                .into_iter()
                 .map(|skinset| skinsets_sorted.binary_search(&skinset).unwrap())
                 .collect()
         })

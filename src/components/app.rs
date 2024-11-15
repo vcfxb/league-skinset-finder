@@ -1,10 +1,9 @@
-
+use super::link::Link;
+use super::skinset_list::SkinsetList;
+use crate::{constants::SkinsetId, model::PlayerRecord};
 use std::rc::Rc;
 use std::{cell::RefCell, collections::HashSet};
 use yew::{function_component, html, use_reducer, Callback, Html, Reducible};
-use crate::{constants::SkinsetId, model::PlayerRecord};
-use super::link::Link;
-use super::skinset_list::SkinsetList;
 
 #[derive(Clone, PartialEq)]
 pub struct Players(pub Rc<RefCell<Vec<PlayerRecord>>>);
@@ -38,7 +37,7 @@ pub struct IncludedSkinsets(pub Rc<RefCell<HashSet<SkinsetId>>>);
 pub enum IncludedSkinsetsAction {
     ExcludeAll,
     IncludeAll,
-    Toggle(SkinsetId)
+    Toggle(SkinsetId),
 }
 
 impl Reducible for IncludedSkinsets {
@@ -53,7 +52,7 @@ impl Reducible for IncludedSkinsets {
 
             IncludedSkinsetsAction::Toggle(skinset_id) => {
                 if inner.contains(&skinset_id) {
-                    inner.remove(&skinset_id); 
+                    inner.remove(&skinset_id);
                 } else {
                     inner.insert(skinset_id);
                 }
@@ -70,17 +69,17 @@ pub fn App() -> Html {
     let players = use_reducer(|| Players(Rc::new(RefCell::new(vec![PlayerRecord::new()]))));
 
     let skinsets = use_reducer(|| {
-        IncludedSkinsets(Rc::new(RefCell::new(SkinsetId::generate_default_included_skinsets())))
+        IncludedSkinsets(Rc::new(RefCell::new(
+            SkinsetId::generate_default_included_skinsets(),
+        )))
     });
 
     let skinsets_dispatch = {
         let skinsets = skinsets.clone();
 
-        Callback::from(move |action| {
-            skinsets.dispatch(action)
-        })
+        Callback::from(move |action| skinsets.dispatch(action))
     };
-    
+
     // Resolve whether any players can be removed currently.
     let enable_player_removal = players.0.borrow().len() > 1;
 
@@ -106,7 +105,7 @@ pub fn App() -> Html {
                             remember to update this every patch. If you notice that the date above is a long time ago, or there
                             are champs/skins missing, please let me know by filing an Issue report at 
                             "}
-                            <Link href="https://github.com/vcfxb/league-skinset-finder/issues" open_in_new_tab=true /> 
+                            <Link href="https://github.com/vcfxb/league-skinset-finder/issues" open_in_new_tab=true />
                             {"."}
                         </p>
                     </div>

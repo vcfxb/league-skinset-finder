@@ -1,5 +1,5 @@
-// use crate::{components::App, 
-use constants::{SkinsetId, ChampId};
+// use crate::{components::App,
+use constants::{ChampId, SkinsetId};
 use log::{info, Level};
 // use components::app::App;
 
@@ -18,7 +18,7 @@ fn main() {
     // Initialize the logger.
     console_log::init_with_level(Level::Debug).expect("error initializing logger");
 
-    // Log some info. 
+    // Log some info.
     info!("Logger started");
     info!("Max Skinset ID available: {:?}", SkinsetId::MAX);
     info!("Max Champ ID available: {:?}", ChampId::MAX);

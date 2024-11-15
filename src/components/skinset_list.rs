@@ -1,7 +1,7 @@
 //! Component/card listing all the skinsets to be played.
 
-use yew::{function_component, use_state, Callback, Html, Properties, html};
 use crate::constants::SkinsetId;
+use yew::{function_component, html, use_state, Callback, Html, Properties};
 
 use super::app::{IncludedSkinsets, IncludedSkinsetsAction};
 use super::button::Button;
@@ -10,7 +10,7 @@ use yew_icons::{Icon, IconId::*};
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub skinset_list: IncludedSkinsets,
-    pub change_skinset_list: Callback<IncludedSkinsetsAction>
+    pub change_skinset_list: Callback<IncludedSkinsetsAction>,
 }
 
 #[function_component]
@@ -21,25 +21,19 @@ pub fn SkinsetList(props: &Props) -> Html {
     let exclude_all_skinsets = {
         let cb = cb.clone();
 
-        Callback::from(move |_| {
-            cb.emit(IncludedSkinsetsAction::ExcludeAll)
-        })
+        Callback::from(move |_| cb.emit(IncludedSkinsetsAction::ExcludeAll))
     };
 
     let include_all_skinsets = {
         let cb = cb.clone();
 
-        Callback::from(move |_| {
-            cb.emit(IncludedSkinsetsAction::IncludeAll)
-        })
+        Callback::from(move |_| cb.emit(IncludedSkinsetsAction::IncludeAll))
     };
 
     let toggle_vis = {
         let collapsed = collapsed.clone();
-      
-        Callback::from(move |_| {
-            collapsed.set(!*collapsed)
-        })
+
+        Callback::from(move |_| collapsed.set(!*collapsed))
     };
 
     html! {
@@ -70,7 +64,7 @@ pub fn SkinsetList(props: &Props) -> Html {
                     </Button>
                 </span>
             </div>
-            
+
             if !*collapsed {
                 <div class="card-body row row-cols-6">
                     {
@@ -82,7 +76,7 @@ pub fn SkinsetList(props: &Props) -> Html {
                                 } else {
                                     skinset_id.skinset_name().to_string()
                                 };
-                                
+
                                 // Make an ID for the checkbox.
                                 let checkbox_id: String = format!("skinset-{}-check", skinset_id.inner());
 
