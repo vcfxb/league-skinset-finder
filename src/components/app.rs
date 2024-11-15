@@ -98,7 +98,7 @@ pub fn App() -> Html {
                             <Link href="https://leagueoflegends.fandom.com/wiki/List_of_champions_by_draft_position" open_in_new_tab=true />
                             {"."}
                         </p>
-                        <p> {"Data was last updated from these sources on December 8th, 2023."} </p>
+                        <p> {"Data was last updated from these sources on November 14th, 2024."} </p>
                         <p>
                             {"
                             I will try to keep this generally up to date with league skins and champions, but may not always
