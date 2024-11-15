@@ -1,4 +1,5 @@
 use super::link::Link;
+use super::player::Player;
 use super::skinset_list::SkinsetList;
 use crate::{constants::SkinsetId, model::PlayerRecord};
 use std::borrow::Cow;
@@ -6,7 +7,6 @@ use std::rc::Rc;
 use std::{cell::RefCell, collections::HashSet};
 use yew::{function_component, html, use_reducer, Callback, Html, Reducible};
 use yew_icons::{Icon, IconId};
-use super::player::Player;
 
 #[derive(Clone, PartialEq)]
 pub struct Players(pub Rc<RefCell<Vec<PlayerRecord>>>);
@@ -21,10 +21,7 @@ pub enum PlayersAction {
     Create,
     Delete(usize),
 
-    Rename {
-        index: usize,
-        new_name: String,
-    },
+    Rename { index: usize, new_name: String },
 }
 
 impl Reducible for Players {
@@ -38,13 +35,14 @@ impl Reducible for Players {
             // Create a new player if there are less than 5.
             PlayersAction::Create if inner.len() < 5 => inner.push(PlayerRecord::new()),
             PlayersAction::Create => log::warn!("Cannot create more than 5 players"),
-            
+
             // Delete a player only if they're not the last one left.
             PlayersAction::Delete(_) if inner.len() <= 1 => log::warn!("Cannot delete last player"),
-            PlayersAction::Delete(index) => { inner.remove(index); }
+            PlayersAction::Delete(index) => {
+                inner.remove(index);
+            }
 
             PlayersAction::Rename { index, new_name } => inner[index].name = Cow::Owned(new_name),
-
         }
 
         // Drop the mutable reference and return self.
@@ -141,16 +139,16 @@ pub fn App() -> Html {
                 {
                     (0..players.len())
                         .map(|player_index| html!{
-                            <Player 
-                                index={player_index} 
-                                players_list={(*players).clone()} 
-                                players_dispatch={players_dispatch.clone()} 
-                            /> 
+                            <Player
+                                index={player_index}
+                                players_list={(*players).clone()}
+                                players_dispatch={players_dispatch.clone()}
+                            />
                         })
                         .collect::<Html>()
                 }
 
-                
+
                 // Block button to add a player.
                 <div class={"d-grid gap-2 my-2"}>
                     <button

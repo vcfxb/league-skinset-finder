@@ -3,8 +3,8 @@
 use yew::{function_component, html, Callback, Html, Properties};
 
 use super::app::{Players, PlayersAction};
-use name_field::Name;
 use super::button::Button;
+use name_field::Name;
 use yew_icons::{Icon, IconId};
 
 mod name_field;
@@ -13,14 +13,14 @@ mod name_field;
 pub struct Props {
     pub index: usize,
     pub players_list: Players,
-    pub players_dispatch: Callback<PlayersAction>
+    pub players_dispatch: Callback<PlayersAction>,
 }
 
 #[function_component]
 pub fn Player(props: &Props) -> Html {
     let players = props.players_list.clone();
     let player_name = players.0.borrow()[props.index].name.clone();
-    
+
     let name_change = {
         let players_dispatch = props.players_dispatch.clone();
         let index = props.index;
@@ -33,10 +33,8 @@ pub fn Player(props: &Props) -> Html {
     let remove_player = {
         let players_dispatch = props.players_dispatch.clone();
         let index = props.index;
-        
-        Callback::from(move |_| {
-            players_dispatch.emit(PlayersAction::Delete(index))
-        })
+
+        Callback::from(move |_| players_dispatch.emit(PlayersAction::Delete(index)))
     };
 
     let disable_remove = props.players_list.len() <= 1;
