@@ -5,7 +5,7 @@ use crate::{constants::{ChampId, Lane}, generated::LANE_DATA};
 use enumflags2::BitFlags;
 
 /// State persisted for each player in the frontend.
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct PlayerRecord {
     /// Player name (optional -- resolve with player number otherwise).
     pub name: Option<String>,

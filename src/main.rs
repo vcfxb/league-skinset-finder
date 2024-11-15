@@ -1,7 +1,7 @@
 // use crate::{components::App, 
 use constants::{SkinsetId, ChampId};
 use log::{info, Level};
-use components::app::App;
+// use components::app::App;
 
 mod components;
 mod constants;
@@ -23,5 +23,5 @@ fn main() {
     info!("Max Skinset ID available: {:?}", SkinsetId::MAX);
     info!("Max Champ ID available: {:?}", ChampId::MAX);
 
-    yew::Renderer::<App>::new().render();
+    yew::Renderer::<components::app::App>::new().render();
 }

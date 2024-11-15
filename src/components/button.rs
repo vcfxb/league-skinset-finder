@@ -5,10 +5,10 @@ use yew::{function_component, html, AttrValue, Callback, Html, MouseEvent, Prope
 #[derive(PartialEq, Properties, Debug)]
 pub struct Props {
     #[prop_or(false)]
-    disabled: bool,
-    class: AttrValue,
-    on_click: Callback<()>,
-    children: Html
+    pub disabled: bool,
+    pub class: AttrValue,
+    pub on_click: Callback<()>,
+    pub children: Html
 }
 
 /// A clickable button component. 

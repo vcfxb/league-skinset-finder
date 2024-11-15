@@ -4,7 +4,7 @@ pub mod app;
 mod button;
 // mod checkbox;
 mod link;
-// mod player;
+mod player;
 // // mod results_table;
 mod skinset_list;
 

@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 # Lets us derive things like Display
-derive_more = "0.99.17"
+derive_more = { version = "1", features = ["display"] }
 
 # Used to turn the Lane enum into bitflags
 enumflags2 = { version = "0.7.8", features = ["std", "serde"] }
@@ -32,7 +32,7 @@ getrandom = { version = "0.2", features = ["js"] }
 const-str = "0.5.6"
 
 # WASM SPA framework with CSR
-yew = { version = "0.21.0", features = ["csr", "hydration"] }
+yew = { version = "0.21", features = ["csr", "hydration"] }
 
 # Redirect panics to the JS console in browsers. 
 console_error_panic_hook = "0.1.7"

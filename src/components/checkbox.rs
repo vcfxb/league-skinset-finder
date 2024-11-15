@@ -1,27 +1,29 @@
 //! Checkbox components.
 
-use leptos::{component, view, Callback, IntoView, MaybeSignal, Callable};
+use yew::{function_component, html, Callback, Html, Properties};
 
-/// Checkbox component.
-/// 
-/// # Arguments
-/// - `on_change` - [Callback] to
-/// # WARNING
-/// The reactivity of this component is likely buggy -- steal from the skinset selector when you get a chance. 
-#[component]
-pub fn Checkbox(
-    #[prop(into)]
-    checked: MaybeSignal<bool>,
-    #[prop(into)]
+#[derive(PartialEq, Properties)]
+pub struct Props {
+    checked: bool,
     on_change: Callback<()>
-) -> impl IntoView {
+}
 
-    view! {
+#[function_component]
+pub fn Checkbox(props: &Props) -> Html {
+    let cb = {
+        let on_change = props.on_change.clone();
+
+        Callback::from(move |_| {
+            on_change.emit(())
+        })
+    };
+
+    html! {
         <input
             class="form-check-input"
             type="checkbox"
-            checked={checked}
-            on:change=move |_| on_change.call(())
+            checked={props.checked}
+            onchange={cb}
         />
     }
 }
