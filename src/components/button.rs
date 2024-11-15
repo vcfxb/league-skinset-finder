@@ -1,30 +1,31 @@
 //! Clickable button component.
 
-use leptos::{component, view, Callable, Callback, Children, IntoView, MaybeSignal};
+use yew::{function_component, html, AttrValue, Callback, Html, MouseEvent, Properties};
+
+#[derive(PartialEq, Properties, Debug)]
+pub struct Props {
+    #[prop_or(false)]
+    disabled: bool,
+    class: AttrValue,
+    on_click: Callback<()>,
+    children: Html
+}
 
 /// A clickable button component. 
 /// 
 /// # Arguments
-/// - `disabled` - Is this button disabled/unclickable? (default: false). This can be a signal. 
+/// - `disabled` - Is this button disabled/unclickable? (default: false).
 /// - `class` - The HTML class(es) used to style this button.
 /// - `on_click` - The callback that is triggered when the button is pressed. 
 /// - `children` - The children of this component that are rendered inside of it. 
-#[component]
-pub fn Button(
-    #[prop(into, optional)]
-    disabled: MaybeSignal<bool>,
-    #[prop(into)]
-    class: String,
-    #[prop(into)]
-    on_click: Callback<()>,
-    children: Children
-) -> impl IntoView {
-    // We have to make a closure on stable for some reason. Use it as an opportunity to ignore the mouse event.
-    let on_click_closure = move |_| { on_click.call(()) };
+#[function_component]
+pub fn Button(props: &Props) -> Html {
+    let cb = Callback::clone(&props.on_click);
+    let onclick = move |_: MouseEvent| { cb.emit(()); };
 
-    view! {
-        <button type="button" class=class disabled=disabled on:click=on_click_closure>
-            {children()}
+    html! {
+        <button type="button" class={&props.class} disabled={props.disabled} {onclick}>
+            {props.children.clone()}
         </button>
     }
 }

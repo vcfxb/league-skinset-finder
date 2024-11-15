@@ -1,20 +1,15 @@
 //! Component/card listing all the skinsets to be played.
 
+use yew::function_component;
+
 use crate::{components::button::Button, constants::SkinsetId};
-use icondata::{BiHideRegular, BiShowRegular};
-use leptos::{
-    component, create_effect, create_memo, create_node_ref, create_rw_signal, ev::Event,
-    event_target_checked, html::Input, view, CollectView, Fragment, IntoView, Memo, NodeRef,
-    RwSignal, Show, Signal, SignalGet, SignalSet, SignalUpdate, View,
-};
-use leptos_icons::Icon;
 use std::collections::HashSet;
 
 /// An interactive card that displays all the skinsets available with information on which ones are selected.
 ///
 /// # Arguments
 /// - `skinsets_rw_signal` - A read/write signal to the current [`HashSet`] of skinsets selected.
-#[component]
+#[function_component]
 pub fn SkinsetList(skinsets_rw_signal: RwSignal<HashSet<SkinsetId>>) -> impl IntoView {
     // Create a signal to track the state of whether the card is collapsed.
     let collapsed: RwSignal<bool> = create_rw_signal(false);

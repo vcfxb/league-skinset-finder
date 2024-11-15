@@ -22,7 +22,6 @@ fn main() {
     info!("Logger started");
     info!("Max Skinset ID available: {:?}", SkinsetId::MAX);
     info!("Max Champ ID available: {:?}", ChampId::MAX);
-    
-    // Mount/start the main App.
-    leptos::mount_to_body(App);
+
+    yew::Renderer::<App>::new().render();
 }
