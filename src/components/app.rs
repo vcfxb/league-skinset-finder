@@ -6,6 +6,7 @@ use crate::{constants::SkinsetId, model::PlayerRecord};
 use super::link::Link;
 use super::skinset_list::SkinsetList;
 
+#[derive(Clone, PartialEq)]
 pub struct Players(pub Rc<RefCell<Vec<PlayerRecord>>>);
 
 pub enum PlayersAction {
