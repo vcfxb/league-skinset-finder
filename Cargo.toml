@@ -20,7 +20,7 @@ log = "0.4.20"
 console_log = { version = "1.0.0", features = ["color"] }
 
 # Universally unique identifier generation
-uuid = { version = "1.5.0", features = ["v4"] }
+# uuid = { version = "1.5.0", features = ["v4"] }
 
 # Serialization and deserizalization 
 serde = { version = "1.0.189", features = ["derive", "rc"] }
@@ -37,8 +37,19 @@ yew = { version = "0.21", features = ["csr", "hydration"] }
 # Redirect panics to the JS console in browsers. 
 console_error_panic_hook = "0.1.7"
 
+# Web-sys to interact more directly with web/browser APIs
+web-sys = "0.3.72"
+
 # Icons for yew.
-yew_icons = { version = "0.8.0", features = ["BootstrapEyeFill", "BootstrapEyeSlashFill", "OcticonsLinkExternal16"] }
+[dependencies.yew_icons]
+version = "0.8.0"
+features = [
+    "BootstrapEyeFill", 
+    "BootstrapEyeSlashFill", 
+    "BootstrapPersonAdd", 
+    "BootstrapTrash",
+    "OcticonsLinkExternal16"
+]
 
 # For build script to timestamp every build. 
 [build-dependencies]

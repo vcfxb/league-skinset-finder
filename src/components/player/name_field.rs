@@ -1,6 +1,5 @@
 //! Component definition for the player's name field.
 
-use uuid::Uuid;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
@@ -20,7 +19,7 @@ pub fn name_field(props: &NameProps) -> Html {
     // Use the input node's ref to get the value of the text box whenever it's changed.
     let input_node_ref = use_node_ref();
     // Use uuid to make an ID that connects the two fields of the form and is reasonably expected to be globally unique.
-    let id: AttrValue = Uuid::new_v4().to_string().into();
+    let id: AttrValue = format!("player-{}-name", props.player_id).into();
 
     // Make a callback to handle events.
     let on_name_input = {

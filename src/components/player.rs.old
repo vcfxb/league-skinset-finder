@@ -107,37 +107,6 @@ impl Component for Player {
                     </div>
                 </div>
 
-                // Champ selectors.
-                // <ul class={"list-group list-group-flush"}>
-                //     {
-                //         champ_selections.iter().map(|(champ_id, lanes)| html!{
-                //             <li class={"list-group-item"}>
-                //                 <ChampSelection
-                //                     change_champ_callback={change_champ_callback.clone()}
-                //                     other_available_champs={other_available_champs.clone()}
-                //                     lane_change_callback={lane_change_callback.clone()}
-                //                     remove_champ_callback={remove_champ_callback.clone()}
-
-                //                     selected_champ={
-                //                         Some((champ_name.clone(), *lanes))
-                //                     }
-                //                 />
-                //             </li>
-                //         }).collect::<Html>()
-                //     }
-                //     <li class={"list-group-item"}>
-                //         <ChampSelection
-                //             selected_champ={None}
-                //             change_champ_callback={change_champ_callback.clone()}
-                //             other_available_champs={other_available_champs.clone()}
-                //             // Leave the lane-change callback and remove champ callback no-ops
-                //             // because there should not be any lanes or champ data
-                //             // on an empty champ selector.
-                //             lane_change_callback={Callback::noop()}
-                //             remove_champ_callback={Callback::noop()}
-                //         />
-                //     </li>
-                // </ul>
             </div>
         }
     }

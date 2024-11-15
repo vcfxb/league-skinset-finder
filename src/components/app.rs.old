@@ -177,53 +177,6 @@ use crate::components::link::Link;
 //                 // get a reference to the "global" skinset exclusion list. 
 //                 <SkinsetList />
 
-//                 {
-//                     (0..self.players.len()).map(|player_index| html!{ <Player id={player_index}/> }).collect::<Html>()
-
-//                     // self.players.iter()
-//                     //     .enumerate()
-//                     //     .map(|(id, player)| {
-//                     //         html! {
-//                     //             <Player
-//                     //                 {id}
-
-//                     //                 // on_name_change={
-//                     //                 //     ctx.link().callback(move |new_name| {
-//                     //                 //         AppMsg::PlayerNameUpdate { index: id, new_name }
-//                     //                 //     })
-//                     //                 // }
-
-//                     //                 // enable_remove={enable_player_removal}
-
-//                     //                 // on_remove={
-//                     //                 //     ctx.link().callback(move |_| {
-//                     //                 //         AppMsg::RemovePlayer { player_index: id }
-//                     //                 //     })
-//                     //                 // }
-//                     //             />
-//                     //         }
-//                     //     })
-//                     //     .collect::<Html>()
-//                 }
-
-//                 // Block button to add a player.
-//                 // <div class={"d-grid gap-2 my-2"}>
-//                 //     <button
-//                 //         type={"button"}
-//                 //         class={"btn btn-success"}
-//                 //         disabled={self.players.len() == 5}
-
-//                 //         // On-click handler to add a player.
-//                 //         onclick={
-//                 //             ctx.link().callback(move |_| {
-//                 //                 Msg::AddPlayer
-//                 //             })
-//                 //         }
-//                 //     >
-//                 //         <Icon icon_id={IconId::BootstrapPersonAdd} /> {" Add Player"}
-//                 //     </button>
-//                 // </div>
-
 //                 // // Table component to be rendered here.
 //                 // <ResultsTable players={self.players.clone()} skinsets_excluded={self.skinsets_excluded.clone()} />
 //             </div>

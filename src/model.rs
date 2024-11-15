@@ -1,5 +1,7 @@
 //! Frontend models.
 
+use std::borrow::Cow;
+
 use crate::{
     constants::{ChampId, Lane},
     generated::LANE_DATA,
@@ -10,8 +12,8 @@ use serde::{Deserialize, Serialize};
 /// State persisted for each player in the frontend.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct PlayerRecord {
-    /// Player name (optional -- resolve with player number otherwise).
-    pub name: Option<String>,
+    /// Player name (optional -- empty will cause placeholder).
+    pub name: Cow<'static, str>,
 
     /// List of champs and what lanes for them. This is in the order that they're in in the UI.
     pub champs: Vec<(ChampId, BitFlags<Lane>)>,
@@ -21,7 +23,7 @@ impl PlayerRecord {
     /// Create a new player with no names, and an empty champ list.
     pub fn new() -> Self {
         Self {
-            name: None,
+            name: Cow::Borrowed(""),
             champs: Vec::with_capacity(LANE_DATA.len()),
         }
     }
