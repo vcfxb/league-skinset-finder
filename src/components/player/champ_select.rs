@@ -31,8 +31,7 @@ pub fn ChampSelectCard(props: &Props) -> Html {
             players.0.borrow()[player_index.0]
                 .champs
                 .iter()
-                .find(|(selected_champ, _)| selected_champ == champ_id)
-                .is_none()
+                .all(|(selected_champ, _)| selected_champ != champ_id)
         })
         .collect::<Vec<_>>()
         .into_boxed_slice()
