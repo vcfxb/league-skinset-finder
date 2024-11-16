@@ -1,14 +1,17 @@
 //! Champ-select card's dropdown component.
 
+use super::PlayerIndex;
+use crate::{
+    components::app::{Players, PlayersAction},
+    constants::ChampId,
+};
 use std::rc::Rc;
 use yew::{function_component, html, use_context, Callback, Html, Properties};
-use crate::{components::app::{Players, PlayersAction}, constants::ChampId};
-use super::PlayerIndex;
 
 #[derive(PartialEq, Properties)]
 pub struct Props {
     pub champ_index: usize,
-    pub available_champs: Rc<[ChampId]>
+    pub available_champs: Rc<[ChampId]>,
 }
 
 #[function_component]
@@ -17,7 +20,10 @@ pub fn ChampDropdown(props: &Props) -> Html {
     let players = use_context::<Players>().expect("player provides ctx");
     let players_dispatch = use_context::<Callback<PlayersAction>>().expect("player provides ctx");
 
-    let select_id = format!("player-{}-champ-dropdown-{}", player_index, props.champ_index);
+    let select_id = format!(
+        "player-{}-champ-dropdown-{}",
+        player_index, props.champ_index
+    );
 
     html! {
         <div class="form-floating">
@@ -49,4 +55,3 @@ pub fn ChampDropdown(props: &Props) -> Html {
         </div>
     }
 }
-

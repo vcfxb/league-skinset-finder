@@ -2,10 +2,12 @@
 
 use std::rc::Rc;
 
-use yew::{function_component, html, use_context, Callback, Html, Properties};
-use crate::{components::app::{Players, PlayersAction}, constants::ChampId};
 use super::PlayerIndex;
-
+use crate::{
+    components::app::{Players, PlayersAction},
+    constants::ChampId,
+};
+use yew::{function_component, html, use_context, Callback, Html, Properties};
 
 #[derive(PartialEq, Properties)]
 pub struct Props {

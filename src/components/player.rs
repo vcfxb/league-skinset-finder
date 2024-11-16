@@ -1,16 +1,16 @@
 //! Player component.
 
-use derive_more::derive::Display;
-use yew::{function_component, html, Callback, Html, Properties, ContextProvider};
 use super::app::{Players, PlayersAction};
 use super::button::Button;
-use name_field::Name;
 use champ_select::ChampSelectCard;
+use derive_more::derive::Display;
+use name_field::Name;
+use yew::{function_component, html, Callback, ContextProvider, Html, Properties};
 use yew_icons::{Icon, IconId};
 
-mod name_field;
-mod champ_select;
 mod champ_dropdown;
+mod champ_select;
+mod name_field;
 
 #[derive(Clone, Copy, Debug, PartialEq, Display)]
 pub struct PlayerIndex(pub usize);

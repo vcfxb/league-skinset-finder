@@ -1,8 +1,8 @@
 //! Component definition for the player's name field.
 
+use super::PlayerIndex;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
-use super::PlayerIndex;
 
 #[derive(Properties, PartialEq)]
 pub struct NameProps {
