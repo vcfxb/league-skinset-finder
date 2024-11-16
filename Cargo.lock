@@ -828,7 +828,6 @@ dependencies = [
  "const-str",
  "derive_more 1.0.0",
  "enumflags2",
- "getrandom",
  "instant",
  "log",
  "scraper",
