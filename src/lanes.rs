@@ -98,6 +98,9 @@ impl LanesMap {
 
     /// Get an iterator over all the lanes available for a given champion. 
     pub fn lanes_for_champ(&self, champ_name: &str) -> impl Iterator<Item = Lane> {
-        self.champ_to_lanes_map[champ_name].iter()
+        self.champ_to_lanes_map
+            .get(champ_name)
+            .expect(format!("Could not find champion {champ_name}").as_str())
+            .iter()
     }
 }

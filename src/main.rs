@@ -35,7 +35,8 @@ const TONI: Player = Player {
         "Cho'Gath",
         "Briar",
         "Morgana",
-        "Kindred"
+        "Kindred",
+        "Smolder",
     ]
 };
 
@@ -46,43 +47,44 @@ const VENUS: Player = Player {
         "Blitzcrank",
         "Lux",
         "Pantheon",
-        "Illaoi"
+        "Jhin",
+        "Xerath",
+        "Tristana",
+        "Miss Fortune",
+        "Veigar",
     ],
 };
 
 const EMMA: Player = Player {
     name: "Emma",
     champs: &[
+        "Ahri",
+        "Aphelios",
         "Diana",
         "Pyke",
         "Akali",
         "Fizz",
-        "Ahri",
         "Jinx",
         "Kalista",
         "LeBlanc",
         "Lux",
-        "Gwen",
         "Ezreal",
         "Soraka",
         "Renata Glasc",
-        "Yuumi",
         "Seraphine",
         "Kindred",
         "Irelia",
         "Azir",
         "Kai'Sa",
         "Karma",
-        "Kennen",
-        "Mordekaiser",
         "Nami",
-        "Quinn",
+        "Nilah",
         "Senna",
         "Sivir",
         "Shyvana",
         "Taliyah",
         "Varus",
-        "Viego",
+        "Vi",
         "Xayah"
     ],
 };
@@ -94,7 +96,7 @@ const SKINSET_BLACKLIST: &'static [&'static str] = &[
     "Battlecast"
 ];
 
-const PLAYERS: &'static [Player] = &[MADDIE, TONI, VENUS, EMMA];
+const PLAYERS: &'static [Player] = &[TONI, VENUS, EMMA];
 
 /// Make an iterator over all combinations of champions.
 fn all_champ_combinations(players: &[Player], lanes_map: &LanesMap) -> Vec<Vec<(&'static str, Lane)>> {
