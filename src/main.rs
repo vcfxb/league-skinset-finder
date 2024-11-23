@@ -1,5 +1,5 @@
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use lanes::Lane;
 use skinsets::Skinsets;
 use comfy_table::modifiers::UTF8_ROUND_CORNERS;
@@ -30,13 +30,13 @@ const MADDIE: Player = Player {
 const TONI: Player = Player {
     name: "Toni",
     champs: &[
-        "Vel'Koz",
-        "Evelynn",
+        // "Vel'Koz",
+        // "Evelynn",
         "Cho'Gath",
         "Briar",
-        "Morgana",
-        "Kindred",
         "Smolder",
+        "Samira",
+        // "Volibear",
     ]
 };
 
@@ -44,14 +44,17 @@ const VENUS: Player = Player {
     name: "Venus",
     champs: &[
         "Mordekaiser",
-        "Blitzcrank",
+        // "Blitzcrank",
         "Lux",
-        "Pantheon",
+        // "Pantheon",
         "Jhin",
         "Xerath",
         "Tristana",
         "Miss Fortune",
+        // "Twisted Fate",
         "Veigar",
+        // "Aurora",
+        "Brand"
     ],
 };
 
@@ -65,25 +68,25 @@ const EMMA: Player = Player {
         "Akali",
         "Fizz",
         "Jinx",
-        "Kalista",
+        // "Kalista",
         "LeBlanc",
         "Lux",
-        "Ezreal",
+        // "Ezreal",
         "Soraka",
-        "Renata Glasc",
-        "Seraphine",
-        "Kindred",
+        // "Renata Glasc",
+        // "Seraphine",
+        // "Kindred",
         "Irelia",
-        "Azir",
-        "Kai'Sa",
+        // "Azir",
+        // "Kai'Sa",
         "Karma",
         "Nami",
         "Nilah",
-        "Senna",
+        // "Senna",
         "Sivir",
-        "Shyvana",
-        "Taliyah",
-        "Varus",
+        // "Shyvana",
+        // "Taliyah",
+        // "Varus",
         "Vi",
         "Xayah"
     ],
@@ -93,7 +96,11 @@ const SKINSET_BLACKLIST: &'static [&'static str] = &[
     // Blacklisted for being aesthetically incoherent
     "Legacy", 
     // Blacklisted for being ugly. 
-    "Battlecast"
+    "Battlecast",
+    // Not matching enough
+    "Day Job",
+    "Fable",
+    "Anima Squad"
 ];
 
 const PLAYERS: &'static [Player] = &[TONI, VENUS, EMMA];
@@ -165,10 +172,16 @@ fn main() -> anyhow::Result<()> {
     // Set the table header -- list of player names and skinset column.
     table.set_header(PLAYERS.iter().map(|p| p.name).chain(std::iter::once("Skinsets")));
 
+    let mut skinset_counts: HashMap<String, usize> = HashMap::new();
+
     // Iterate over every possible combination of champs for the given players.
     for champ_combo in all_champ_combinations(PLAYERS, &lanes_map) {
         // Get the set of overlapping skinsets for the champions.
         let overlapping_skinsets: HashSet<String> = skinset_map.get_overlapping_skinsets(&champ_combo);
+
+        for skinset in overlapping_skinsets.iter() {
+            *skinset_counts.entry(skinset.clone()).or_default() += 1;
+        }
 
         // If there are overlapping skins, add a row to the table.
         if !overlapping_skinsets.is_empty() {
@@ -190,7 +203,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     // Print the table.
-    println!("{table}");
+    println!("{table}\n{skinset_counts:#?}");
     // Exit status OK. 
     Ok(())
 }

@@ -88,7 +88,7 @@ impl Skinsets {
         // For each of the remaining champs, reduce the intersection to overlapping skinsets.
         for (champ, _) in champ_list.iter().skip(1) {
             // Get a reference to this champ's skinsets.
-            let champ_skinsets = &self.champ_to_skinset_map[*champ];
+            let champ_skinsets = &self.champ_to_skinset_map.get(*champ).expect(format!("cannot find champ {champ}").as_str());
             // Clone and collect all the skinset names into the new intersection set. 
             intersection = intersection.intersection(champ_skinsets).cloned().collect();
         }
